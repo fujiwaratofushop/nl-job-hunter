@@ -34,7 +34,7 @@ To generate a random key, run this in PowerShell:
 ### 2. Start llama.cpp
 
 Make sure your llama.cpp server is running on port 8080 with a Qwen3 model.
-The workflow uses model name `unsloth/Qwen3.5-9B-GGUF:Q6_K-GGUF:Q6_K` — adjust in the workflow nodes if yours differs.
+The workflow uses model name `unsloth/Qwen3.5-9B-GGUF:Q6_K` — adjust in the workflow nodes if yours differs.
 
 ### 3. Start n8n
 

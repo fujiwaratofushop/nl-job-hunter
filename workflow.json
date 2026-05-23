@@ -38,7 +38,7 @@
         "specifyBody": "json",
         "jsonBody": "{\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=software%20engineer%20Netherlands%20relocation&location=Netherlands&f_TPR=r86400\",\n    \"https://www.linkedin.com/jobs/search/?keywords=senior%20developer%20Amsterdam%20visa%20sponsor&location=Netherlands&f_TPR=r86400\",\n    \"https://www.linkedin.com/jobs/search/?keywords=AI%20engineer%20Netherlands%20sponsorship&location=Netherlands&f_TPR=r86400\"\n  ],\n  \"maxResults\": 1\n}",
         "options": {
-          "timeout": 180000
+          "timeout": 300000
         }
       },
       "id": "scrape-01",
@@ -82,9 +82,9 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"unsloth/Qwen3.5-9B-GGUF:Q6_K-GGUF:Q6_K\",\n  \"temperature\": 0.1,\n  \"max_tokens\": 300,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a JSON-only API. Output a single valid JSON object. No markdown, no code fences, no explanation.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Does this job offer visa sponsorship or relocation support for the Netherlands?\\n\\nSignals: relocation package, visa sponsorship, highly skilled migrant, kennismigrant, IND sponsor, work permit, 30% ruling, international candidates welcome, open to candidates abroad.\\nKnown sponsors: Booking.com, Adyen, TomTom, ASML, Philips, bol.com, Nearmap, IMEC.\\n\\nRespond exactly:\\n{\\\"offers_relocation\\\": true, \\\"confidence\\\": \\\"high\\\", \\\"signals\\\": [\\\"signal1\\\"]}\\n\\nTitle: {{ $json.title }}\\nCompany: {{ $json.company }}\\nLocation: {{ $json.location }}\\nDescription: {{ $json.description }}\\n\\n/no_think\"\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"model\": \"unsloth/Qwen3.5-9B-GGUF:Q6_K\",\n  \"temperature\": 0.1,\n  \"max_tokens\": 10000,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a JSON-only API. Output a single valid JSON object. No markdown, no code fences, no explanation.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Does this job offer visa sponsorship or relocation support for the Netherlands?\\n\\nSignals: relocation package, visa sponsorship, highly skilled migrant, kennismigrant, IND sponsor, work permit, 30% ruling, international candidates welcome, open to candidates abroad.\\nKnown sponsors: Booking.com, Adyen, TomTom, ASML, Philips, bol.com, Nearmap, IMEC.\\n\\nRespond exactly:\\n{\\\"offers_relocation\\\": true, \\\"confidence\\\": \\\"high\\\", \\\"signals\\\": [\\\"signal1\\\"]}\\n\\nTitle: {{ $json.title }}\\nCompany: {{ $json.company }}\\nLocation: {{ $json.location }}\\nDescription: {{ $json.description }}\\n\\n/no_think\"\n    }\n  ]\n}",
         "options": {
-          "timeout": 120000,
+          "timeout": 300000,
           "response": {
             "includeInputData": true
           }
@@ -131,7 +131,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"unsloth/Qwen3.5-9B-GGUF:Q6_K\",\n  \"temperature\": 0.7,\n  \"max_tokens\": 700,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You write punchy, confident cover letters. Plain text only. No markdown. No preamble.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Write a cover letter for this role. Max 250 words, 3 paragraphs.\\n\\nCandidate: Shirsak — Senior Software Engineer (SDE3/AVP), 6+ years. Currently at JPMorgan Chase Asset & Wealth Management building AI-native platforms (Connect Studio, MCP server infra, RAG pipelines). Stack: React, TypeScript, Python, AWS, agentic AI. BITS Pilani CS 2019. Relocating to Netherlands — needs visa sponsorship (Kennismigrant pathway).\\n\\nParagraph 1 — Hook: Something specific about {{ $json.company }} or this role that genuinely excites. Use details from the JD. Do NOT start with 'I am writing to express interest'.\\nParagraph 2 — Why me: 2 specific JPMC achievements that directly address what the JD needs.\\nParagraph 3 — Logistics: Available for remote interviews. Targeting relocation Q3/Q4 2026. Visa sponsorship (Kennismigrant) needed — matter-of-fact, not apologetic.\\n\\nCompany: {{ $json.company }}\\nRole: {{ $json.title }}\\nJD (first 2000 chars): {{ $json.description.substring(0, 2000) }}\\n\\n/no_think\"\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"model\": \"unsloth/Qwen3.5-9B-GGUF:Q6_K\",\n  \"temperature\": 0.7,\n  \"max_tokens\": 10000,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You write punchy, confident cover letters. Plain text only. No markdown. No preamble.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Write a cover letter for this role. Max 250 words, 3 paragraphs.\\n\\nCandidate: Shirsak — Senior Software Engineer (SDE3/AVP), 6+ years. Currently at JPMorgan Chase Asset & Wealth Management building AI-native platforms (Connect Studio, MCP server infra, RAG pipelines). Stack: React, TypeScript, Python, AWS, agentic AI. BITS Pilani CS 2019. Relocating to Netherlands — needs visa sponsorship (Kennismigrant pathway).\\n\\nParagraph 1 — Hook: Something specific about {{ $json.company }} or this role that genuinely excites. Use details from the JD. Do NOT start with 'I am writing to express interest'.\\nParagraph 2 — Why me: 2 specific JPMC achievements that directly address what the JD needs.\\nParagraph 3 — Logistics: Available for remote interviews. Targeting relocation Q3/Q4 2026. Visa sponsorship (Kennismigrant) needed — matter-of-fact, not apologetic.\\n\\nCompany: {{ $json.company }}\\nRole: {{ $json.title }}\\nJD (first 2000 chars): {{ $json.description }}\\n\\n/no_think\"\n    }\n  ]\n}",
         "options": {
           "timeout": 300000,
           "response": {
