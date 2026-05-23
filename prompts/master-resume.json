@@ -1,0 +1,162 @@
+{
+  "meta": {
+    "name": "Shirsak Sahoo",
+    "title": "Senior Software Engineer · Full-Stack · AI/ML · React · Python · AWS",
+    "email": "shirsaksahoo96@gmail.com",
+    "phone": "+91-7997187900",
+    "linkedin": "linkedin.com/in/shirsaksahoo",
+    "location": "Bangalore, India (Relocating to Netherlands)",
+    "note": "Open to visa sponsorship / Kennismigrant pathway"
+  },
+
+  "summary": "Full-stack AI/ML engineer with 7+ years of experience building scalable web applications and AI-native systems. Currently at JPMorgan Chase Asset & Wealth Management (SDE3 / Associate Vice President), architecting MCP server infrastructure and the Connect Studio AI platform. Experienced across React, TypeScript, Python, AWS, and agentic systems. BITS Pilani graduate seeking relocation to Netherlands.",
+
+  "skills": {
+    "ai_ml": [
+      "Python", "AI/ML Engineering", "LLM & ML Integration",
+      "RAG", "MCP Servers", "Agentic Systems", "Agentic Coding",
+      "AI-native System Design", "AWS Sagemaker"
+    ],
+    "frontend": [
+      "React", "TypeScript", "JavaScript", "Webpack", "Vite",
+      "Next.js", "Microfrontend Architecture", "Design Systems",
+      "SVG", "Storybook", "Jest", "Syncfusion"
+    ],
+    "backend": [
+      "Node.js", "C#", ".NETCore", "Java", "ASP.NET",
+      "REST APIs", "Webhooks", "AWS SQS", "Flask", "Python"
+    ],
+    "data": [
+      "PostgreSQL", "SQL Server", "Redis", "MongoDB", "SQL"
+    ],
+    "cloud_devops": [
+      "AWS (ECS, EFS, S3, CloudFront, Sagemaker, CloudWatch)",
+      "Amazon Connect", "Azure DevOps", "Docker",
+      "Deployment & Infrastructure", "ESM Modules"
+    ],
+    "professional": [
+      "Technical leadership", "Mentoring (10+ developers)",
+      "Engineering estimation (~95% accuracy)",
+      "ADA/WCAG accessibility", "Strategic problem-solving"
+    ],
+    "languages_spoken": [
+      "English (Professional)", "Hindi (Professional)",
+      "Odia (Native)", "German (Basic)"
+    ]
+  },
+
+  "experience": [
+    {
+      "company": "JPMorgan Chase & Co.",
+      "division": "Asset & Wealth Management — Investment Technology",
+      "title": "Senior Software Engineer (SDE3 / Associate Vice President)",
+      "location": "Bangalore, India",
+      "period": "Sept 2025 — Present",
+      "tech": ["React", "Python", "AWS", "MCP", "AI/ML", "TypeScript", "Agentic Systems", "Design Systems"],
+      "bullets": [
+        "Working on Connect OS — an internal platform powering AI-native tooling and developer productivity at JPMC scale under the Asset & Wealth Management division",
+        "Architected and built MCP servers for the design system and toolkit, enabling LLM-native access to component APIs, design tokens, and usage guidelines",
+        "Created Connect Studio — an AI-native platform supporting multiple personas and workflows including design-to-code, story-to-code, and Jira-to-code, enabling rapid development of production-ready interfaces using the next-gen Connect component library",
+        "Built AI-native systems that integrate LLMs deeply into engineering and design workflows, bridging the gap between AI capabilities and real-world product delivery",
+        "Owned AWS infrastructure operations for Connect OS across multi-region environments, covering Amazon Connect, EFS, S3, certificates, deployment pipelines, and CloudWatch observability"
+      ]
+    },
+    {
+      "company": "Aurigo Software Technologies",
+      "title": "Senior Software Engineer",
+      "location": "Bangalore, India",
+      "period": "Aug 2019 — Aug 2025",
+      "roles": [
+        {
+          "product": "Aurigo Plan 2.0",
+          "period": "Jan 2025 — Aug 2025",
+          "tech": ["React", "TypeScript", "AWS S3", "PostgreSQL", ".NETCore", "Docker", "Redis", "NextJS"],
+          "bullets": [
+            "Led the frontend architecture for Aurigo's next-gen planning suite, aimed at private owners"
+          ]
+        },
+        {
+          "product": "Aurigo Workflow",
+          "period": "Jan 2025 — May 2025",
+          "tech": ["React", "SVG", "TypeScript", "Syncfusion", "AWS SQS", "Webhooks", "Webpack"],
+          "bullets": [
+            "Co-developed a drag-and-drop, canvas-based Workflow Builder microservice for dynamic creation and visualization of complex business process flows",
+            "Implemented real-time notifications using Webhooks and integrated backend validation for process integrity"
+          ]
+        },
+        {
+          "product": "Aurigo Lumina GPT",
+          "period": "Aug 2024 — Dec 2024",
+          "tech": ["React", "LLMs", "AWS Sagemaker", "Microfrontends", "ESM Modules", "Webpack"],
+          "bullets": [
+            "Contributed to Lumina AI, Aurigo's flagship AI-powered product, integrating LLMs into real-world enterprise workflows",
+            "Supported microservices architecture for scalable AI feature delivery; aligned AI capabilities with product objectives"
+          ]
+        },
+        {
+          "product": "Aurigo Essentials 2.0",
+          "period": "Jan 2023 — Dec 2024",
+          "tech": ["React", "TypeScript", "AWS CloudFront", "Microfrontends", "Jest", ".NETCore", "PostgreSQL", "Storybook", "Webpack"],
+          "bullets": [
+            "Led UI architecture; designed the core application platform and an in-house design system library",
+            "Delivered engineering estimates with ~95% accuracy; mentored 10+ developers across multiple deliverables",
+            "The product became the foundation for all subsequent products in the Aurigo suite"
+          ]
+        },
+        {
+          "product": "Aurigo Masterworks Cloud",
+          "title_at_time": "SDE 2",
+          "period": "Jan 2021 — Dec 2022",
+          "tech": ["React", "JavaScript", "REST API", "jQuery", "ASP.NET", "AzureDevOps", "SQL"],
+          "bullets": [
+            "Led the UX team and mentored 5+ external vendor teams on best practices",
+            "Pioneered ADA and WCAG compliance initiative — achieved 85% accessibility adherence, recognized in Aurigo's press release"
+          ]
+        },
+        {
+          "product": "Aurigo Facelift",
+          "title_at_time": "SDE 1",
+          "period": "Aug 2019 — Dec 2020",
+          "tech": ["HTML5", "CSS", "JavaScript", "jQuery", "SCSS", "ASP.NET", "Python", "SQL"],
+          "bullets": [
+            "Revamped the legacy web application to modern UI/UX standards, improving user engagement",
+            "Built internal tools to streamline product adoption by solution engineers and clients"
+          ]
+        }
+      ]
+    },
+    {
+      "company": "HCLTech",
+      "division": "HCL Products & Platforms",
+      "title": "Software Engineering Intern",
+      "location": "India",
+      "period": "Aug 2018 — Dec 2018",
+      "tech": ["Java", "Jenkins", "Flask", "Python", "GitHub"],
+      "bullets": [
+        "Built Java applications to migrate 10,000+ projects across CI servers (IBM BuildForge and Jenkins)",
+        "Created a React + Flask dashboard saving 1000+ person-hours over 3 months for managers and leads"
+      ]
+    }
+  ],
+
+  "education": [
+    {
+      "institution": "Birla Institute of Technology & Science (BITS), Pilani",
+      "degree": "B.E. in Electrical & Electronics",
+      "period": "2015 — 2019"
+    },
+    {
+      "institution": "Birla Institute of Technology & Science (BITS), Pilani",
+      "degree": "Minor in Finance",
+      "period": "2015 — 2019"
+    }
+  ],
+
+  "highlights": [
+    "Hands-on production MCP server infrastructure (rare & high-demand skill in 2025)",
+    "7+ years full-stack depth: React UI → AWS infra → ML/LLM pipelines",
+    "Technical leadership: mentored 10+ engineers, 95% estimation accuracy, accessibility press coverage",
+    "AI-native platform ownership at JPMC scale (Connect OS / Connect Studio)",
+    "Active LLM practitioner: local inference (Ollama, RTX 3080 Ti), RAG, agentic coding"
+  ]
+}

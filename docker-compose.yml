@@ -1,0 +1,49 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: nl-job-hunter
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=Asia/Kolkata
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - LLAMA_CPP_URL=${LLAMA_CPP_URL:-http://host.docker.internal:8080}
+      - APIFY_API_TOKEN=${APIFY_API_TOKEN}
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - NPM_INSTALL_EXCELJS=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./output:/home/node/output
+    depends_on:
+      llama-healthcheck:
+        condition: service_completed_successfully
+
+  llama-healthcheck:
+    image: curlimages/curl:latest
+    restart: "no"
+    entrypoint: >
+      sh -c "
+        echo 'Waiting for llama.cpp server...';
+        i=0;
+        until curl -sf http://host.docker.internal:8080/health > /dev/null 2>&1; do
+          i=$$((i+1));
+          if [ $$i -ge 20 ]; then
+            echo 'llama.cpp did not start after 60s, giving up.';
+            exit 1;
+          fi;
+          sleep 3;
+        done;
+        echo 'llama.cpp is ready.';
+      "
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  n8n_data:
