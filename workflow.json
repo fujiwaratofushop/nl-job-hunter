@@ -1,5 +1,5 @@
 {
-  "name": "NL Jobs - Regex Relocation + Cover Letter",
+  "name": "NL Jobs - Iterative Relocation + Cover Letter",
   "nodes": [
     {
       "parameters": {
@@ -12,11 +12,11 @@
           ]
         }
       },
-      "id": "trigger-01",
+      "id": "1934620c-639d-4a47-bfd7-078c26a76953",
       "name": "Daily Trigger (8AM IST Mon-Fri)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "position": [
-        -1200,
+        0,
         0
       ],
       "typeVersion": 1.3
@@ -41,24 +41,24 @@
           "timeout": 300000
         }
       },
-      "id": "scrape-01",
+      "id": "e3ffbd38-5ff8-4d6f-b4b7-e2dec2e504ac",
       "name": "Scrape LinkedIn Jobs",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        -960,
+        240,
         0
       ],
       "typeVersion": 4.4
     },
     {
       "parameters": {
-        "jsCode": "// Normalize scraped jobs.\nconst results = [];\n\nfor (const item of $input.all()) {\n  const j = item.json;\n\n  const url         = (j.jobUrl || j.url || j.link || '').trim();\n  const title       = j.title || j.jobTitle || j.position || '';\n  const company     = j.company || j.companyName || '';\n  const location    = j.location || j.jobLocation || '';\n  const description = j.description || j.jobDescription || j.descriptionHtml || '';\n\n  if (!url || !title || !description || description.length < 100) {\n    continue;\n  }\n\n  results.push({\n    json: {\n      url,\n      title,\n      company,\n      location,\n      description\n    }\n  });\n}\n\nconsole.log(`Jobs after normalization: ${results.length}`);\nreturn results;"
+        "jsCode": "// Normalize scraped jobs.\nconst results = [];\n\nfor (const item of $input.all()) {\n  const j = item.json;\n\n  const url = (j.jobUrl || j.url || j.link || '').trim();\n  const title = j.title || j.jobTitle || j.position || '';\n  const company = j.company || j.companyName || '';\n  const location = j.location || j.jobLocation || '';\n  const description = j.description || j.jobDescription || j.descriptionHtml || '';\n\n  if (!url || !title || !description || description.length < 100) {\n    continue;\n  }\n\n  results.push({\n    json: {\n      url,\n      title,\n      company,\n      location,\n      description\n    }\n  });\n}\n\nconsole.log(`Jobs after normalization: ${results.length}`);\nreturn results;"
       },
-      "id": "normalize-01",
+      "id": "d3bbe5ba-54d0-4b43-95a3-b64b5c075db9",
       "name": "Normalize Jobs",
       "type": "n8n-nodes-base.code",
       "position": [
-        -720,
+        480,
         0
       ],
       "typeVersion": 2
@@ -67,24 +67,40 @@
       "parameters": {
         "jsCode": "// Regex-only relocation + sponsorship filter.\nconst results = [];\n\nconst HIGH_PATTERNS = [\n  /visa sponsorship/i,\n  /sponsorship available/i,\n  /provide visa/i,\n  /work permit sponsorship/i,\n  /relocation support/i,\n  /relocation package/i,\n  /kennismigrant/i,\n  /ind sponsor/i,\n  /visa sponsor/i,\n  /sponsoring visas/i,\n  /we sponsor/i,\n  /sponsor your visa/i,\n  /global mobility/i\n];\n\nconst MEDIUM_PATTERNS = [\n  /eu blue card/i,\n  /highly skilled migrant/i,\n  /work authorization/i,\n  /must be eligible to work/i,\n  /relocate to netherlands/i,\n  /immigration support/i,\n  /work permit/i\n];\n\nfor (const item of $input.all()) {\n  const job = item.json;\n\n  const text = `${job.title}\\n${job.description}`.toLowerCase();\n\n  const matchedHigh = HIGH_PATTERNS\n    .filter(r => r.test(text))\n    .map(r => r.source.replace(/\\\\/g, ''));\n\n  const matchedMedium = MEDIUM_PATTERNS\n    .filter(r => r.test(text))\n    .map(r => r.source.replace(/\\\\/g, ''));\n\n  if (matchedHigh.length === 0 && matchedMedium.length === 0) {\n    continue;\n  }\n\n  const confidence = matchedHigh.length > 0 ? 'high' : 'medium';\n\n  results.push({\n    json: {\n      url: job.url,\n      title: job.title,\n      company: job.company,\n      location: job.location,\n      description: job.description,\n      relocation_signals: [...matchedHigh, ...matchedMedium].join(', '),\n      relocation_confidence: confidence\n    }\n  });\n}\n\nconsole.log(`Jobs after regex relocation filter: ${results.length}`);\nreturn results;"
       },
-      "id": "regex-filter-01",
+      "id": "4ad93330-9695-4b8a-b4a5-3454eb4ee263",
       "name": "Regex Relocation Filter",
       "type": "n8n-nodes-base.code",
       "position": [
-        -480,
+        720,
         0
       ],
       "typeVersion": 2
     },
     {
       "parameters": {
-        "jsCode": "// Build cover letter LLM request using wf1-style prompting.\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const {\n    url,\n    title,\n    company,\n    location,\n    description,\n    relocation_signals,\n    relocation_confidence\n  } = item.json;\n\n  const payload = {\n    model: 'unsloth/Qwen3.5-9B-GGUF:Q6_K',\n    temperature: 0.7,\n    max_tokens: 12000,\n    messages: [\n      {\n        role: 'system',\n        content: 'Write an optimized cover letter for the incoming job description. Use only information from the provided resume. Do not make anything up. The cover letter should be one paragraph followed by bullet points. Output plain text only. No markdown fences. No reasoning. No thinking.'\n      },\n      {\n        role: 'user',\n        content: `Job Description:\\n${description.slice(0, 3000)}\\n\\nResume:\\nShirsak Sahoo\\nSenior Software Engineer (SDE3/AVP) with 6+ years experience. Currently at JPMorgan Chase Asset & Wealth Management building AI-native platforms including Connect Studio, MCP server infrastructure, RAG pipelines and internal AI tooling. Strong experience in React, TypeScript, JavaScript, Python, AWS, Node.js, GraphQL and agentic AI systems. BITS Pilani Computer Science graduate (2019). Experience building scalable frontend systems, full-stack platforms, developer tooling, AI workflows and automation systems. Looking to relocate to the Netherlands through the kennismigrant visa pathway. Available for remote interviews and relocation in Q3/Q4 2026.\\n\\nCompany: ${company}\\nRole: ${title}\\nLocation: ${location}`\n      }\n    ],\n    extra_body: {\n      chat_template_kwargs: {\n        enable_thinking: false\n      }\n    }\n  };\n\n  results.push({\n    json: {\n      _job: {\n        url,\n        title,\n        company,\n        location,\n        description,\n        relocation_signals,\n        relocation_confidence\n      },\n      _llmPayload: payload\n    }\n  });\n}\n\nreturn results;"
+        "options": {
+          "size": 1,
+          "ignoreError": false
+        }
       },
-      "id": "build-cover-req-01",
+      "id": "78270a0d-1401-43b0-a36b-40f634cc6fb3",
+      "name": "Split In Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        960,
+        0
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build cover letter LLM request.\nconst results = [];\n\nconst coverLetterTemplate = `Dear Hiring Manager,\n\nI am excited to apply for the [JOB_TITLE] position at [COMPANY_NAME].\n\nI am currently working as a Senior Software Engineer (SDE3 / Associate Vice President) at JPMorgan Chase Asset & Wealth Management, where I work on AI-native engineering platforms, MCP server infrastructure, developer tooling, and large-scale cloud systems.\n\nWhat strongly attracted me to [COMPANY_NAME] is [SPECIFIC_REASON_ABOUT_COMPANY_OR_PRODUCT].\n\nIn my current role at JPMorgan Chase, I:\n- Architect MCP server infrastructure enabling LLM-native access to design systems and engineering workflows\n- Build AI-native platforms such as Connect Studio supporting design-to-code and story-to-code workflows\n- Work across React, TypeScript, Python, AWS, and agentic systems\n\nPreviously at Aurigo Software Technologies, I spent nearly 6 years building enterprise-scale frontend and AI-integrated platforms.\n\nI am particularly interested in relocating to the Netherlands through a visa sponsorship / kennismigrant opportunity.\n\nThank you for your consideration.\n\nBest regards,\nShirsak Sahoo`;\n\nfor (const item of $input.all()) {\n  const {\n    url,\n    title,\n    company,\n    location,\n    description,\n    relocation_signals,\n    relocation_confidence\n  } = item.json;\n\n  const trimmedDescription = description.substring(0, 4000);\n\n  const payload = {\n    model: 'unsloth/Qwen3.5-9B-GGUF:Q6_K',\n    temperature: 0.4,\n    max_tokens: 9000,\n    top_p: 0.9,\n    repeat_penalty: 1.1,\n    messages: [\n      {\n        role: 'system',\n        content: 'You are an expert cover letter writer. Generate concise professional cover letters tailored to the role.'\n      },\n      {\n        role: 'user',\n        content: `Template:\\n${coverLetterTemplate}\\n\\nJob Description:\\n${trimmedDescription}\\n\\nCompany: ${company}\\nRole: ${title}\\nLocation: ${location}\\n\\nGenerate a personalized cover letter using the template and job description.`\n      }\n    ],\n    extra_body: {\n      chat_template_kwargs: {\n        enable_thinking: false\n      }\n    }\n  };\n\n  results.push({\n    json: {\n      _job: {\n        url,\n        title,\n        company,\n        location,\n        description: trimmedDescription,\n        relocation_signals,\n        relocation_confidence\n      },\n      _llmPayload: payload\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "06908034-583d-477b-a0d8-03909bf1a1b8",
       "name": "Build Cover Letter Request",
       "type": "n8n-nodes-base.code",
       "position": [
-        -240,
+        1200,
         0
       ],
       "typeVersion": 2
@@ -110,30 +126,28 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json._llmPayload) }}",
         "options": {
-          "timeout": 300000,
-          "response": {
-            "responseFormat": "json"
-          }
+          "response": {},
+          "timeout": 300000
         }
       },
-      "id": "llm-cover-01",
+      "id": "2fac01a5-68a9-43dd-865b-114f4c914367",
       "name": "LLM: Generate Cover Letter",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        0,
+        1440,
         0
       ],
       "typeVersion": 4.4
     },
     {
       "parameters": {
-        "jsCode": "// Assemble final sheet row.\nconst llmItems = $input.all();\nconst reqItems = $('Build Cover Letter Request').all();\nconst results = [];\n\nfor (let i = 0; i < llmItems.length; i++) {\n  try {\n    const llmItem = llmItems[i];\n    const reqItem = reqItems[i];\n\n    if (!llmItem?.json || !reqItem?.json?._job) continue;\n\n    const coverLetter = (llmItem.json?.choices?.[0]?.message?.content || '').trim();\n\n    if (!coverLetter) continue;\n\n    const job = reqItem.json._job;\n\n    results.push({\n      json: {\n        date: new Date().toISOString().split('T')[0],\n        company: job.company || '',\n        title: job.title || '',\n        location: job.location || '',\n        url: job.url || '',\n        relocation_signals: job.relocation_signals || '',\n        relocation_confidence: job.relocation_confidence || '',\n        cover_letter: coverLetter,\n        status: 'Not Applied'\n      }\n    });\n  } catch (e) {\n    console.log('Assemble error:', e.message);\n  }\n}\n\nreturn results;"
+        "jsCode": "// Assemble final row.\nconst llmItem = $input.first();\nconst reqItem = $('Build Cover Letter Request').first();\n\nif (!llmItem?.json || !reqItem?.json?._job) {\n  return [];\n}\n\nconst coverLetter = (llmItem.json?.choices?.[0]?.message?.content || '').trim();\n\nif (!coverLetter) {\n  return [];\n}\n\nconst job = reqItem.json._job;\n\nreturn [\n  {\n    json: {\n      date: new Date().toISOString().split('T')[0],\n      company: job.company || '',\n      title: job.title || '',\n      location: job.location || '',\n      url: job.url || '',\n      relocation_signals: job.relocation_signals || '',\n      relocation_confidence: job.relocation_confidence || '',\n      cover_letter: coverLetter,\n      status: 'Not Applied'\n    }\n  }\n];"
       },
-      "id": "assemble-01",
+      "id": "0415b761-07ad-48f0-a4f4-673159a78cd1",
       "name": "Assemble Row",
       "type": "n8n-nodes-base.code",
       "position": [
-        240,
+        1680,
         0
       ],
       "typeVersion": 2
@@ -143,7 +157,7 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "value": "=1lGi7mXQZKTbaP4ytTr0F3tcyjkFO4lxDfTMcdpb-8E4",
           "mode": "id"
         },
         "sheetName": {
@@ -165,26 +179,25 @@
             "Status": "={{ $json.status }}"
           }
         },
-        "options": {
-          "valueInputMode": "RAW"
-        }
+        "options": {}
       },
-      "id": "gsheet-01",
+      "id": "bb791743-b14b-4161-9f03-ec67dfc3d1f7",
       "name": "Append to Google Sheet",
       "type": "n8n-nodes-base.googleSheets",
       "position": [
-        480,
+        1920,
         0
       ],
       "typeVersion": 4.4,
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "google-sheets-cred",
+          "id": "TrXIngdk7ZtrUczP",
           "name": "Google Sheets account"
         }
       }
     }
   ],
+  "pinData": {},
   "connections": {
     "Daily Trigger (8AM IST Mon-Fri)": {
       "main": [
@@ -223,11 +236,23 @@
       "main": [
         [
           {
-            "node": "Build Cover Letter Request",
+            "node": "Split In Batches",
             "type": "main",
             "index": 0
           }
         ]
+      ]
+    },
+    "Split In Batches": {
+      "main": [
+        [
+          {
+            "node": "Build Cover Letter Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
       ]
     },
     "Build Cover Letter Request": {
@@ -262,11 +287,29 @@
           }
         ]
       ]
+    },
+    "Append to Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate"
   },
+  "versionId": "0b5094c0-9e06-4b49-9743-4d4cd4b893aa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ff4fcd04e02b0883c04ba691a16e0b39ce6580e81776fe61b57c57637edaca8b"
+  },
+  "id": "VWgqe9TWQIdsCP6B",
   "tags": []
 }
