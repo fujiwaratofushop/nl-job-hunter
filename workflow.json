@@ -1,5 +1,5 @@
 {
-  "name": "NL Jobs - Cover Letter Only",
+  "name": "NL Jobs - Regex Relocation + Cover Letter",
   "nodes": [
     {
       "parameters": {
@@ -36,7 +36,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=software%20engineer%20Netherlands%20relocation&location=Netherlands&f_TPR=r86400\",\n    \"https://www.linkedin.com/jobs/search/?keywords=senior%20developer%20Amsterdam%20visa%20sponsor&location=Netherlands&f_TPR=r86400\",\n    \"https://www.linkedin.com/jobs/search/?keywords=AI%20engineer%20Netherlands%20sponsorship&location=Netherlands&f_TPR=r86400\"\n  ],\n  \"maxResults\": 1\n}",
+        "jsonBody": "{\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=software%20engineer%20Netherlands%20relocation&location=Netherlands&f_TPR=r86400\",\n    \"https://www.linkedin.com/jobs/search/?keywords=senior%20developer%20Amsterdam%20visa%20sponsor&location=Netherlands&f_TPR=r86400\",\n    \"https://www.linkedin.com/jobs/search/?keywords=AI%20engineer%20Netherlands%20sponsorship&location=Netherlands&f_TPR=r86400\"\n  ],\n  \"maxResults\": 10\n}",
         "options": {
           "timeout": 300000
         }
@@ -52,10 +52,10 @@
     },
     {
       "parameters": {
-        "jsCode": "const j = $input.first();\nif (!j) return [];\n\nconst url         = j.json.jobUrl || j.json.url || j.json.link || '';\nconst title       = j.json.title || j.json.jobTitle || j.json.position || '';\nconst company     = j.json.company || j.json.companyName || '';\nconst location    = j.json.location || j.json.jobLocation || '';\nconst description = j.json.description || j.json.jobDescription || j.json.descriptionHtml || '';\n\nif (!url || !title || !description || description.length < 100) return [];\n\nreturn [{ json: { url, title, company, location, description } }];"
+        "jsCode": "// Normalize scraped jobs.\nconst results = [];\n\nfor (const item of $input.all()) {\n  const j = item.json;\n\n  const url         = (j.jobUrl || j.url || j.link || '').trim();\n  const title       = j.title || j.jobTitle || j.position || '';\n  const company     = j.company || j.companyName || '';\n  const location    = j.location || j.jobLocation || '';\n  const description = j.description || j.jobDescription || j.descriptionHtml || '';\n\n  if (!url || !title || !description || description.length < 100) {\n    continue;\n  }\n\n  results.push({\n    json: {\n      url,\n      title,\n      company,\n      location,\n      description\n    }\n  });\n}\n\nconsole.log(`Jobs after normalization: ${results.length}`);\nreturn results;"
       },
       "id": "normalize-01",
-      "name": "Normalize Job Fields",
+      "name": "Normalize Jobs",
       "type": "n8n-nodes-base.code",
       "position": [
         -720,
@@ -65,47 +65,23 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $env.LLAMA_CPP_URL }}/v1/chat/completions",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "Authorization",
-              "value": "Bearer no-key-needed"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: \"unsloth/Qwen3.5-9B-GGUF:Q6_K\",\n  temperature: 0,\n  max_tokens: 10000,\n  messages: [\n    {\n      role: \"system\",\n      content: \"Return ONLY valid minified JSON. No reasoning. No thinking. No markdown. No explanations.\"\n    },\n    {\n      role: \"user\",\n      content: `Analyze whether this Netherlands job offers:\\n- visa sponsorship\\n- relocation support\\n- kennismigrant sponsorship\\n- IND sponsorship\\n\\nReturn EXACTLY this JSON schema:\\n\\n{\\n  \\\"offers_relocation\\\": true,\\n  \\\"confidence\\\": \\\"high\\\",\\n  \\\"signals\\\": [\\\"visa sponsorship\\\"]\\n}\\n\\nRules:\\n- Output ONLY JSON\\n- No markdown\\n- No thinking\\n- No extra text\\n\\nTitle: ${$json.title}\\nCompany: ${$json.company}\\nLocation: ${$json.location}\\n\\nDescription:\\n${$json.description}`\n    }\n  ],\n  extra_body: {\n    chat_template_kwargs: {\n      enable_thinking: false\n    }\n  }\n}) }}",
-        "options": {
-          "timeout": 300000,
-          "response": {
-            "responseFormat": "json",
-            "includeInputData": true
-          }
-        }
+        "jsCode": "// Regex-only relocation + sponsorship filter.\nconst results = [];\n\nconst HIGH_PATTERNS = [\n  /visa sponsorship/i,\n  /sponsorship available/i,\n  /provide visa/i,\n  /work permit sponsorship/i,\n  /relocation support/i,\n  /relocation package/i,\n  /kennismigrant/i,\n  /ind sponsor/i,\n  /visa sponsor/i,\n  /sponsoring visas/i,\n  /we sponsor/i,\n  /sponsor your visa/i,\n  /global mobility/i\n];\n\nconst MEDIUM_PATTERNS = [\n  /eu blue card/i,\n  /highly skilled migrant/i,\n  /work authorization/i,\n  /must be eligible to work/i,\n  /relocate to netherlands/i,\n  /immigration support/i,\n  /work permit/i\n];\n\nfor (const item of $input.all()) {\n  const job = item.json;\n\n  const text = `${job.title}\\n${job.description}`.toLowerCase();\n\n  const matchedHigh = HIGH_PATTERNS\n    .filter(r => r.test(text))\n    .map(r => r.source.replace(/\\\\/g, ''));\n\n  const matchedMedium = MEDIUM_PATTERNS\n    .filter(r => r.test(text))\n    .map(r => r.source.replace(/\\\\/g, ''));\n\n  if (matchedHigh.length === 0 && matchedMedium.length === 0) {\n    continue;\n  }\n\n  const confidence = matchedHigh.length > 0 ? 'high' : 'medium';\n\n  results.push({\n    json: {\n      url: job.url,\n      title: job.title,\n      company: job.company,\n      location: job.location,\n      description: job.description,\n      relocation_signals: [...matchedHigh, ...matchedMedium].join(', '),\n      relocation_confidence: confidence\n    }\n  });\n}\n\nconsole.log(`Jobs after regex relocation filter: ${results.length}`);\nreturn results;"
       },
-      "id": "llm-filter-01",
-      "name": "LLM: Relocation Filter",
-      "type": "n8n-nodes-base.httpRequest",
+      "id": "regex-filter-01",
+      "name": "Regex Relocation Filter",
+      "type": "n8n-nodes-base.code",
       "position": [
         -480,
         0
       ],
-      "typeVersion": 4.4
+      "typeVersion": 2
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  try {\n    const msg = item.json?.choices?.[0]?.message || {};\n\n    let raw =\n      msg.content ||\n      msg.reasoning_content ||\n      '';\n\n    raw = raw.trim();\n\n    const match = raw.match(/\\{[\\s\\S]*\\}/);\n\n    if (!match) continue;\n\n    const parsed = JSON.parse(match[0]);\n\n    if (!parsed.offers_relocation) continue;\n\n    if (\n      parsed.confidence &&\n      parsed.confidence.toLowerCase() === 'low'\n    ) {\n      continue;\n    }\n\n    results.push({\n      json: {\n        url:\n          item.json.body?.url ||\n          item.json.url ||\n          '',\n\n        title:\n          item.json.body?.title ||\n          item.json.title ||\n          '',\n\n        company:\n          item.json.body?.company ||\n          item.json.company ||\n          '',\n\n        location:\n          item.json.body?.location ||\n          item.json.location ||\n          '',\n\n        description:\n          item.json.body?.description ||\n          item.json.description ||\n          '',\n\n        relocation_signals:\n          (parsed.signals || []).join(', '),\n\n        relocation_confidence:\n          parsed.confidence || 'medium'\n      }\n    });\n\n  } catch (e) {\n    console.log('Parse error:', e.message);\n  }\n}\n\nreturn results;"
+        "jsCode": "// Build cover letter LLM request using wf1-style prompting.\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const {\n    url,\n    title,\n    company,\n    location,\n    description,\n    relocation_signals,\n    relocation_confidence\n  } = item.json;\n\n  const payload = {\n    model: 'unsloth/Qwen3.5-9B-GGUF:Q6_K',\n    temperature: 0.7,\n    max_tokens: 12000,\n    messages: [\n      {\n        role: 'system',\n        content: 'Write an optimized cover letter for the incoming job description. Use only information from the provided resume. Do not make anything up. The cover letter should be one paragraph followed by bullet points. Output plain text only. No markdown fences. No reasoning. No thinking.'\n      },\n      {\n        role: 'user',\n        content: `Job Description:\\n${description.slice(0, 3000)}\\n\\nResume:\\nShirsak Sahoo\\nSenior Software Engineer (SDE3/AVP) with 6+ years experience. Currently at JPMorgan Chase Asset & Wealth Management building AI-native platforms including Connect Studio, MCP server infrastructure, RAG pipelines and internal AI tooling. Strong experience in React, TypeScript, JavaScript, Python, AWS, Node.js, GraphQL and agentic AI systems. BITS Pilani Computer Science graduate (2019). Experience building scalable frontend systems, full-stack platforms, developer tooling, AI workflows and automation systems. Looking to relocate to the Netherlands through the kennismigrant visa pathway. Available for remote interviews and relocation in Q3/Q4 2026.\\n\\nCompany: ${company}\\nRole: ${title}\\nLocation: ${location}`\n      }\n    ],\n    extra_body: {\n      chat_template_kwargs: {\n        enable_thinking: false\n      }\n    }\n  };\n\n  results.push({\n    json: {\n      _job: {\n        url,\n        title,\n        company,\n        location,\n        description,\n        relocation_signals,\n        relocation_confidence\n      },\n      _llmPayload: payload\n    }\n  });\n}\n\nreturn results;"
       },
-      "id": "keep-01",
-      "name": "Keep Confirmed Relocation Jobs",
+      "id": "build-cover-req-01",
+      "name": "Build Cover Letter Request",
       "type": "n8n-nodes-base.code",
       "position": [
         -240,
@@ -132,11 +108,11 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  model: \"unsloth/Qwen3.5-9B-GGUF:Q6_K\",\n  temperature: 0.7,\n  max_tokens: 10000,\n  messages: [\n    {\n      role: \"system\",\n      content: \"You write punchy, confident cover letters. Plain text only. No markdown. No reasoning. No thinking.\"\n    },\n    {\n      role: \"user\",\n      content: `Write a cover letter for this role. Max 250 words, 3 paragraphs.\\n\\nCandidate: Shirsak — Senior Software Engineer (SDE3/AVP), 6+ years. Currently at JPMorgan Chase Asset & Wealth Management building AI-native platforms (Connect Studio, MCP server infra, RAG pipelines). Stack: React, TypeScript, Python, AWS, agentic AI. BITS Pilani CS 2019. Relocating to Netherlands — needs visa sponsorship (Kennismigrant pathway).\\n\\nParagraph 1 — Hook: Something specific about ${$json.company} or this role that genuinely excites. Use details from the JD. Do NOT start with 'I am writing to express interest'.\\n\\nParagraph 2 — Why me: 2 specific JPMC achievements that directly address what the JD needs.\\n\\nParagraph 3 — Logistics: Available for remote interviews. Targeting relocation Q3/Q4 2026. Visa sponsorship (Kennismigrant) needed — matter-of-fact, not apologetic.\\n\\nCompany: ${$json.company}\\nRole: ${$json.title}\\n\\nJD:\\n${($json.description || '').slice(0, 2000)}`\n    }\n  ],\n  extra_body: {\n    chat_template_kwargs: {\n      enable_thinking: false\n    }\n  }\n}) }}",
+        "jsonBody": "={{ JSON.stringify($json._llmPayload) }}",
         "options": {
           "timeout": 300000,
           "response": {
-            "includeInputData": true
+            "responseFormat": "json"
           }
         }
       },
@@ -151,7 +127,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Extract cover letter and assemble final row.\n// includeInputData: true means job fields are merged into $json alongside LLM response.\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  if (!item?.json) continue;\n  try {\n    const coverLetter = (item.json?.choices?.[0]?.message?.content || '').trim();\n    if (!coverLetter) continue;\n\n    results.push({\n      json: {\n        date:                  new Date().toISOString().split('T')[0],\n        company:               item.json.company               || '',\n        title:                 item.json.title                 || '',\n        location:              item.json.location              || '',\n        url:                   item.json.url                   || '',\n        relocation_signals:    item.json.relocation_signals    || '',\n        relocation_confidence: item.json.relocation_confidence || '',\n        cover_letter:          coverLetter,\n        status:                'Not Applied'\n      }\n    });\n  } catch (e) { continue; }\n}\n\nreturn results;"
+        "jsCode": "// Assemble final sheet row.\nconst llmItems = $input.all();\nconst reqItems = $('Build Cover Letter Request').all();\nconst results = [];\n\nfor (let i = 0; i < llmItems.length; i++) {\n  try {\n    const llmItem = llmItems[i];\n    const reqItem = reqItems[i];\n\n    if (!llmItem?.json || !reqItem?.json?._job) continue;\n\n    const coverLetter = (llmItem.json?.choices?.[0]?.message?.content || '').trim();\n\n    if (!coverLetter) continue;\n\n    const job = reqItem.json._job;\n\n    results.push({\n      json: {\n        date: new Date().toISOString().split('T')[0],\n        company: job.company || '',\n        title: job.title || '',\n        location: job.location || '',\n        url: job.url || '',\n        relocation_signals: job.relocation_signals || '',\n        relocation_confidence: job.relocation_confidence || '',\n        cover_letter: coverLetter,\n        status: 'Not Applied'\n      }\n    });\n  } catch (e) {\n    console.log('Assemble error:', e.message);\n  }\n}\n\nreturn results;"
       },
       "id": "assemble-01",
       "name": "Assemble Row",
@@ -176,7 +152,7 @@
           "mode": "name"
         },
         "columns": {
-          "mappingMode": "defineBelow",
+          "mappingMode": "autoMapInputData",
           "value": {
             "Date": "={{ $json.date }}",
             "Company": "={{ $json.company }}",
@@ -225,36 +201,36 @@
       "main": [
         [
           {
-            "node": "Normalize Job Fields",
+            "node": "Normalize Jobs",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Normalize Job Fields": {
+    "Normalize Jobs": {
       "main": [
         [
           {
-            "node": "LLM: Relocation Filter",
+            "node": "Regex Relocation Filter",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "LLM: Relocation Filter": {
+    "Regex Relocation Filter": {
       "main": [
         [
           {
-            "node": "Keep Confirmed Relocation Jobs",
+            "node": "Build Cover Letter Request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Keep Confirmed Relocation Jobs": {
+    "Build Cover Letter Request": {
       "main": [
         [
           {
