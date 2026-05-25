@@ -1,6 +1,6 @@
 @echo off
 echo.
-echo  NL Job Hunter — starting up
+echo  NL Job Hunter starting up
 echo  ============================
 echo.
 

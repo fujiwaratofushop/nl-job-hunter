@@ -70,7 +70,7 @@
         {
           "product": "Aurigo Plan 2.0",
           "period": "Jan 2025 — Aug 2025",
-          "tech": ["React", "TypeScript", "AWS S3", "PostgreSQL", ".NETCore", "Docker", "Redis", "NextJS"],
+          "tech": ["React", "TypeScript", "AWS S3", "PostgreSQL", ".NETCore", "Docker", "Redis", "NextJS", "Lovable"],
           "bullets": [
             "Led the frontend architecture for Aurigo's next-gen planning suite, aimed at private owners"
           ]
@@ -81,16 +81,18 @@
           "tech": ["React", "SVG", "TypeScript", "Syncfusion", "AWS SQS", "Webhooks", "Webpack"],
           "bullets": [
             "Co-developed a drag-and-drop, canvas-based Workflow Builder microservice for dynamic creation and visualization of complex business process flows",
-            "Implemented real-time notifications using Webhooks and integrated backend validation for process integrity"
+            "Implemented real-time notifications using Webhooks and integrated backend validation for process integrity",
+            "Supported 1000+ concurrent users with scalable AWS SQS-based queuing for workflow execution and monitoring"
           ]
         },
         {
           "product": "Aurigo Lumina GPT",
           "period": "Aug 2024 — Dec 2024",
-          "tech": ["React", "LLMs", "AWS Sagemaker", "Microfrontends", "ESM Modules", "Webpack"],
+          "tech": ["React", "LLMs", "AWS Sagemaker", "Microfrontends", "ESM Modules", "Webpack", "RAG"],
           "bullets": [
             "Contributed to Lumina AI, Aurigo's flagship AI-powered product, integrating LLMs into real-world enterprise workflows",
-            "Supported microservices architecture for scalable AI feature delivery; aligned AI capabilities with product objectives"
+            "Supported microservices architecture for scalable AI feature delivery; aligned AI capabilities with product objectives",
+            "Worked closely with cross-functional teams to ensure seamless integration of AI features into the existing product suite"
           ]
         },
         {
@@ -100,24 +102,25 @@
           "bullets": [
             "Led UI architecture; designed the core application platform and an in-house design system library",
             "Delivered engineering estimates with ~95% accuracy; mentored 10+ developers across multiple deliverables",
-            "The product became the foundation for all subsequent products in the Aurigo suite"
+            "The platform became the foundation for all subsequent products in the Aurigo suitem, enabling rapid development and consistent user experience across the board"
           ]
         },
         {
           "product": "Aurigo Masterworks Cloud",
           "title_at_time": "SDE 2",
           "period": "Jan 2021 — Dec 2022",
-          "tech": ["React", "JavaScript", "REST API", "jQuery", "ASP.NET", "AzureDevOps", "SQL"],
+          "tech": ["React", "JavaScript", "REST API", "jQuery", ".NET", "AzureDevOps", "SQL"],
           "bullets": [
             "Led the UX team and mentored 5+ external vendor teams on best practices",
-            "Pioneered ADA and WCAG compliance initiative — achieved 85% accessibility adherence, recognized in Aurigo's press release"
+            "Pioneered ADA and WCAG compliance initiative — achieved 85% accessibility adherence, recognized in Aurigo's press release",
+            "Maintained 200+ Stored Procedures and complex SQL queries for data retrieval and manipulation, ensuring optimal performance and reliability"
           ]
         },
         {
           "product": "Aurigo Facelift",
           "title_at_time": "SDE 1",
           "period": "Aug 2019 — Dec 2020",
-          "tech": ["HTML5", "CSS", "JavaScript", "jQuery", "SCSS", "ASP.NET", "Python", "SQL"],
+          "tech": ["HTML5", "CSS", "JavaScript", "jQuery", "SCSS", ".NET", "Python", "SQL"],
           "bullets": [
             "Revamped the legacy web application to modern UI/UX standards, improving user engagement",
             "Built internal tools to streamline product adoption by solution engineers and clients"
