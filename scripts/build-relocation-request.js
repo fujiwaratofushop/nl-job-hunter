@@ -1,4 +1,3 @@
-// Build LLM payload for relocation analysis
 const results = [];
 
 for (const item of $input.all()) {
@@ -12,7 +11,7 @@ for (const item of $input.all()) {
     max_tokens: 10000,
     top_p: 0.9,
     repeat_penalty: 1.05,
-    stop: ['\n\n', '</s>'],
+    stop: ['</', '</s>'],
     messages: [
       {
         role: 'system',

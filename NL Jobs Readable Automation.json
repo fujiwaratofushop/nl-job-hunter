@@ -12,12 +12,12 @@
           ]
         }
       },
-      "id": "daily-trigger",
+      "id": "34753f99-c561-43ee-b037-9385db1d7782",
       "name": "Daily Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "position": [
-        -720,
-        200
+        -400,
+        96
       ],
       "typeVersion": 1.3
     },
@@ -36,17 +36,17 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=software%20engineer%20visa%20sponsorship&location=Netherlands&f_TPR=r86400\",\n    \"https://www.linkedin.com/jobs/search/?keywords=frontend%20engineer%20relocation&location=Netherlands&f_TPR=r86400\",\n    \"https://www.linkedin.com/jobs/search/?keywords=react%20developer%20kennismigrant&location=Netherlands&f_TPR=r86400\",\n    \"https://www.linkedin.com/jobs/search/?keywords=AI%20engineer%20visa%20sponsor&location=Netherlands&f_TPR=r86400\",\n    \"https://www.linkedin.com/jobs/search/?keywords=fullstack%20developer%20sponsorship&location=Netherlands&f_TPR=r86400\"\n  ],\n  \"maxResults\": 20\n}",
+        "jsonBody": "{\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=software%20engineer&location=Netherlands&f_TPR=r86400\"    ],\n  \"maxResults\": 100\n}",
         "options": {
           "timeout": 300000
         }
       },
-      "id": "scrape-linkedin",
+      "id": "d0d16cfd-ffe0-4565-ac1f-aa0b53670afc",
       "name": "Scrape LinkedIn Jobs",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        -480,
-        200
+        -160,
+        96
       ],
       "typeVersion": 4.4
     },
@@ -54,12 +54,12 @@
       "parameters": {
         "filePath": "scripts/normalize-jobs.js"
       },
-      "id": "normalize-jobs",
+      "id": "d4bcdbc2-4795-4904-9bc3-802559865d1e",
       "name": "Normalize Jobs",
       "type": "n8n-nodes-base.code",
       "position": [
-        -240,
-        200
+        80,
+        96
       ],
       "typeVersion": 2
     },
@@ -77,12 +77,12 @@
         },
         "options": {}
       },
-      "id": "get-existing",
+      "id": "8a3c17ae-2fbc-479e-90bf-218dd9688901",
       "name": "Get Existing Jobs",
       "type": "n8n-nodes-base.googleSheets",
       "position": [
-        -240,
-        -40
+        80,
+        -144
       ],
       "typeVersion": 4.4,
       "alwaysOutputData": true,
@@ -98,12 +98,12 @@
         "mode": "combineBySql",
         "query": "SELECT input1.* FROM input1\nLEFT JOIN input2 ON LOWER(TRIM(input1.url)) = LOWER(TRIM(input2.URL))\nWHERE input2.URL IS NULL"
       },
-      "id": "merge-new-existing",
+      "id": "c2422244-54b3-4867-b759-bfef0ad8c1ff",
       "name": "Merge New + Existing",
       "type": "n8n-nodes-base.merge",
       "position": [
-        0,
-        200
+        320,
+        96
       ],
       "typeVersion": 3
     },
@@ -111,12 +111,12 @@
       "parameters": {
         "filePath": "scripts/filter-duplicates.js"
       },
-      "id": "filter-duplicates",
+      "id": "d2ab6ac5-1cff-4c53-a268-e57d481c5936",
       "name": "Filter Duplicate URLs",
       "type": "n8n-nodes-base.code",
       "position": [
-        240,
-        200
+        560,
+        96
       ],
       "typeVersion": 2
     },
@@ -124,12 +124,12 @@
       "parameters": {
         "options": {}
       },
-      "id": "split-batches",
+      "id": "05bb29d5-f4ff-4a25-9663-83000e428fd6",
       "name": "Split In Batches",
       "type": "n8n-nodes-base.splitInBatches",
       "position": [
-        480,
-        200
+        800,
+        96
       ],
       "typeVersion": 3
     },
@@ -137,12 +137,12 @@
       "parameters": {
         "filePath": "scripts/build-relocation-request.js"
       },
-      "id": "build-relocation-request",
+      "id": "3ef6e208-be7a-4c02-ae70-ec5da4cf6cec",
       "name": "Build Relocation Analysis Request",
       "type": "n8n-nodes-base.code",
       "position": [
-        720,
-        200
+        1040,
+        96
       ],
       "typeVersion": 2
     },
@@ -170,12 +170,12 @@
           "timeout": 300000
         }
       },
-      "id": "llm-relocation-analysis",
+      "id": "6236912b-c2e9-4395-820d-2a5083f01ccb",
       "name": "LLM Relocation Analysis",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        960,
-        200
+        1280,
+        96
       ],
       "typeVersion": 4.4
     },
@@ -204,12 +204,12 @@
         },
         "options": {}
       },
-      "id": "if-approved",
+      "id": "9697ec89-b021-4bfc-ab7f-89250dd38df1",
       "name": "Approved Relocation?",
       "type": "n8n-nodes-base.if",
       "position": [
-        1200,
-        200
+        1520,
+        96
       ],
       "typeVersion": 2.2
     },
@@ -217,12 +217,12 @@
       "parameters": {
         "filePath": "scripts/build-cover-letter-request.js"
       },
-      "id": "build-cover-request",
+      "id": "e5a13c63-41e1-4f2f-901c-74a72c7ea399",
       "name": "Build Cover Letter Request",
       "type": "n8n-nodes-base.code",
       "position": [
-        1440,
-        120
+        1760,
+        16
       ],
       "typeVersion": 2
     },
@@ -250,12 +250,12 @@
           "timeout": 300000
         }
       },
-      "id": "llm-cover-letter",
+      "id": "7afa49b7-a68e-45d8-aeff-d33953237e36",
       "name": "LLM Generate Cover Letter",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        1680,
-        120
+        2000,
+        16
       ],
       "typeVersion": 4.4
     },
@@ -263,12 +263,12 @@
       "parameters": {
         "filePath": "scripts/assemble-row.js"
       },
-      "id": "assemble-row",
+      "id": "2fe260dc-f4a2-4658-a28d-ee5369c740aa",
       "name": "Assemble Row",
       "type": "n8n-nodes-base.code",
       "position": [
-        1920,
-        120
+        2240,
+        16
       ],
       "typeVersion": 2
     },
@@ -301,12 +301,12 @@
         },
         "options": {}
       },
-      "id": "append-sheet",
+      "id": "e61c91d1-6d96-4b5e-bec8-d05c6dd2af57",
       "name": "Append To Google Sheet",
       "type": "n8n-nodes-base.googleSheets",
       "position": [
-        2160,
-        120
+        2480,
+        16
       ],
       "typeVersion": 4.4,
       "credentials": {
@@ -317,6 +317,7 @@
       }
     }
   ],
+  "pinData": {},
   "connections": {
     "Daily Trigger": {
       "main": [
@@ -490,5 +491,11 @@
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
-  }
+  },
+  "versionId": "2f7ba481-3599-473a-bafa-b0d745e90309",
+  "meta": {
+    "instanceId": "ff4fcd04e02b0883c04ba691a16e0b39ce6580e81776fe61b57c57637edaca8b"
+  },
+  "id": "hBkMlX1zLQlGKz6b",
+  "tags": []
 }
