@@ -11,7 +11,7 @@ for (const item of $input.all()) {
     max_tokens: 10000,
     top_p: 0.9,
     repeat_penalty: 1.05,
-    stop: ['</', '</s>'],
+    stop: ['<|im_end|>', '</s>'],
     messages: [
       {
         role: 'system',
