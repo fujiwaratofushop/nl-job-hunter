@@ -9,7 +9,7 @@ Results are appended to a [Google Sheet](https://docs.google.com/spreadsheets/d/
 ## Prerequisites
 
 - **Docker Desktop** (Windows): https://www.docker.com/products/docker-desktop/
-- **llama.cpp server** running locally on port 8080 with a Qwen3 model loaded
+- **llama.cpp server** running locally on port 8080 with a Qwen3.5 model loaded
 - **Apify account** + API token: https://console.apify.com/account/integrations
 - **Google Sheets** account with OAuth2 credentials enabled
 
@@ -60,8 +60,10 @@ docker compose up -d
 
 1. Open http://localhost:5678
 2. Create an account (local only, no internet needed)
-3. Top-left menu → Workflows → Import from file → select `workflow.json`
+3. Top-left menu → Workflows → Import from file → select `NL Jobs Unified Automation.json`
 4. Toggle the workflow to **Active**
+
+> **Note**: The workflow uses embedded credentials for Google Sheets. If you need to change the sheet or credentials, edit the "Get Existing Jobs" and "Append To Google Sheet" nodes directly in the n8n UI.
 
 ---
 
@@ -83,7 +85,7 @@ Every weekday at **8AM IST**, the workflow:
 | Role | Job title/position |
 | Location | Job location in Netherlands |
 | URL | LinkedIn job posting URL |
-| Reloc Signals | Matched relocation keywords (comma-separated) |
+| Relocation Reason | Why the candidate wants to relocate |
 | Confidence | Relocation signal confidence level |
 | Cover Letter | Generated cover letter text |
 | Status | Current status (default: "Not Applied") |
@@ -108,6 +110,14 @@ Current searches:
 
 ---
 
+## NPM Scripts
+
+Run `npm install` to install dependencies. Available scripts:
+
+- `npm run inject-code` — Injects custom code from `scripts/` into the workflow (generates `NL Jobs Unified Automation.json`)
+
+---
+
 ## Stopping
 
 - Double-click `stop.bat`, or
@@ -129,13 +139,6 @@ Test: `curl http://localhost:8080/health` should return `{"status":"ok"}`
 2. LLM may be returning malformed JSON — try lowering temperature or check model
 3. Verify Google Sheets OAuth credentials are connected in the workflow node
 
-### `exceljs` not found error in Code node
-
-This package is installed via `NPM_INSTALL_EXCELJS=true` in docker-compose.yml. If you're on a very old n8n version, update:
-```bash
-docker compose pull && docker compose up -d
-```
-
 ### Google Sheets not updating
 
 1. Verify the workflow node "Append To Google Sheet" has valid OAuth credentials
@@ -151,5 +154,13 @@ docker compose pull && docker compose up -d
 | `start.bat` | Starts Docker containers and n8n |
 | `stop.bat` | Stops Docker containers |
 | `docker-compose.yml` | Docker configuration with healthchecks |
-| `workflow.json` | n8n automation workflow |
-| `prompts/master-resume.json` | Resume template for cover letter generation |
+| `NL Jobs Unified Automation.json` | n8n automation workflow (use this one - pre-injected with code) |
+| `NL Jobs Readable Automation.json` | Readable workflow version (uses filePath references) |
+| `prompts/master-resume.json` | Resume template for cover letter generation (Shirsak Sahoo) |
+| `scripts/` | Custom node scripts (normalize-jobs.js, filter-duplicates.js, etc.) |
+| `inject-code-to-unified.js` | Transforms Readable to Unified workflow by injecting script code |
+| `assemble-row.js` | Assembles job data into Google Sheets row format |
+| `build-relocation-request.js` | Builds LLM payload for relocation analysis |
+| `build-cover-letter-request.js` | Builds LLM payload for cover letter generation |
+| `filter-duplicates.js` | Filters duplicate job URLs from existing sheet |
+| `normalize-jobs.js` | Normalizes and cleans LinkedIn job data |

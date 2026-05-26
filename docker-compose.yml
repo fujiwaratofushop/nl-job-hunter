@@ -15,7 +15,6 @@ services:
       - LLAMA_CPP_URL=${LLAMA_CPP_URL:-http://host.docker.internal:8080}
       - APIFY_API_TOKEN=${APIFY_API_TOKEN}
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
-      - NPM_INSTALL_EXCELJS=true
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -33,8 +32,8 @@ services:
         echo 'Waiting for llama.cpp server...';
         i=0;
         until curl -sf http://host.docker.internal:8080/health > /dev/null 2>&1; do
-          i=$$((i+1));
-          if [ $$i -ge 20 ]; then
+          i=$((i+1));
+          if [ $i -ge 20 ]; then
             echo 'llama.cpp did not start after 60s, giving up.';
             exit 1;
           fi;

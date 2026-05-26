@@ -11,6 +11,7 @@ try {
   sheetRows = [];
 }
 
+// Add existing jobs to the set
 for (const row of sheetRows) {
   const r = row.json || {};
   const url = r.URL || r.Url || r.url || '';
@@ -44,6 +45,7 @@ for (const item of $input.all()) {
     continue;
   }
 
+  // Preserve all job properties, not just url and title
   output.push({ json: job });
 }
 

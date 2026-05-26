@@ -2,14 +2,30 @@
 const relocationResp = $('LLM Relocation Analysis').first().json;
 const buildNode = $('Build Relocation Analysis Request').first().json;
 
-const raw = relocationResp.choices?.[0]?.message?.content || '{}';
+const raw = relocationResp?.choices?.[0]?.message?.content || '{}';
 let relocation = { approve: false, confidence: 'low', reason: 'parse_failed' };
 
 try {
   relocation = JSON.parse(raw);
-} catch (e) {}
+} catch (e) {
+  console.log('Error parsing relocation response:', e.message);
+}
 
 const job = buildNode;
+
+// Load resume data from master-resume.json
+const fs = require('fs');
+const path = require('path');
+const ROOT_DIR = path.join(__dirname, '..');
+const resumePath = path.join(ROOT_DIR, 'prompts', 'master-resume.json');
+let resumeData = { yearsOfExperience: '7', name: '[YOUR_NAME]' };
+
+try {
+  const resumeContent = fs.readFileSync(resumePath, 'utf8');
+  resumeData = JSON.parse(resumeContent);
+} catch (err) {
+  console.log('Could not load resume data, using defaults:', err.message);
+}
 
 const coverLetterTemplate = `Dear [HIRING_MANAGER / Hiring Team],
 
@@ -47,6 +63,8 @@ Company: ${job.company}
 Location: ${job.location}
 Relocation Reason: ${relocation.reason}
 Confidence Level: ${relocation.confidence}
+Candidate Name: ${resumeData.name}
+Years of Experience: ${resumeData.yearsOfExperience}
 
 Generate a cover letter using the template above. Replace placeholders with actual values. For [COMPANY_SPECIFIC_PARAGRAPH], write 2-3 sentences about why this company is interesting based on the job description.`
     }
