@@ -52,7 +52,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const results = [];\n\nfor (const item of $input.all()) {\n  const j = item.json;\n\n  const url = (j.jobUrl || j.url || j.link || '').trim();\n  const title = j.title || j.jobTitle || j.position || '';\n  const company = j.company || j.companyName || '';\n  const location = j.location || j.jobLocation || '';\n  const description = j.description || j.jobDescription || j.descriptionHtml || '';\n\n  if (!url || !title || !description || description.length < 100) {\n    continue;\n  }\n\n  results.push({\n    json: {\n      url,\n      title,\n      company,\n      location,\n      description\n    }\n  });\n}\n\nconsole.log(`Jobs after normalization: ${results.length}`);\nreturn results;"
+        "filePath": "scripts/normalize-jobs.js"
       },
       "id": "normalize-jobs",
       "name": "Normalize Jobs",
@@ -109,7 +109,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const normalizeUrl = (url = '') => url.toString().split('?')[0].replace(/\\/$/, '').trim().toLowerCase();\nconst normalizeText = (v = '') => v.toString().trim().toLowerCase();\n\nconst existing = new Set();\n\nlet sheetRows = [];\ntry {\n  sheetRows = $('Get Existing Jobs').all();\n} catch (e) {\n  sheetRows = [];\n}\n\nfor (const row of sheetRows) {\n  const r = row.json || {};\n  const url = r.URL || r.Url || r.url || '';\n\n  if (!url) continue;\n\n  const key = [\n    normalizeUrl(url),\n    normalizeText(r.Company || r.company || ''),\n    normalizeText(r.Role || r.role || '')\n  ].join('|');\n\n  existing.add(key);\n}\n\nconst output = [];\n\nfor (const item of $input.all()) {\n  const job = item.json || {};\n\n  if (!job.url || !job.title) continue;\n\n  const key = [\n    normalizeUrl(job.url),\n    normalizeText(job.company || ''),\n    normalizeText(job.title)\n  ].join('|');\n\n  if (existing.has(key)) {\n    console.log(`Duplicate skipped: ${job.title} @ ${job.company}`);\n    continue;\n  }\n\n  output.push({ json: job });\n}\n\nconsole.log(`New unique jobs after dedup: ${output.length}`);\nreturn output;"
+        "filePath": "scripts/filter-duplicates.js"
       },
       "id": "filter-duplicates",
       "name": "Filter Duplicate URLs",
@@ -135,7 +135,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const results = [];\n\nfor (const item of $input.all()) {\n  const job = item.json;\n\n  const trimmedDescription = (job.description || '');\n\n  const payload = {\n    model: 'unsloth/Qwen3.5-9B-GGUF:Q6_K',\n    temperature: 0.1,\n    max_tokens: 10000,\n    top_p: 0.9,\n    repeat_penalty: 1.05,\n    stop: ['<|im_end|>', '</s>'],\n    messages: [\n      {\n        role: 'system',\n        content: `You are an expert technical recruiter.\n\nAnalyze whether this job is suitable for an Indian software engineer relocating to the Netherlands.\n\nReturn ONLY valid JSON.\n\nRules:\n- approve=true if the role likely supports visa sponsorship, relocation, kennismigrant hiring, or international candidates.\n- approve=false if the role clearly requires Dutch only, EU citizenship, existing work authorization, or explicitly says no sponsorship.\n- confidence should be: high, medium, or low.\n- reason should be short.\n\nJSON format:\n{\n  \"approve\": true,\n  \"confidence\": \"high\",\n  \"reason\": \"mentions visa sponsorship\"\n}`\n      },\n      {\n        role: 'user',\n        content: `Job Title: ${job.title}\nCompany: ${job.company}\nLocation: ${job.location}\n\nDescription:\n${trimmedDescription}`\n      }\n    ],\n    extra_body: {\n      chat_template_kwargs: {\n        enable_thinking: false\n      }\n    }\n  };\n\n  results.push({\n    json: {\n      ...job,\n      _relocationPayload: payload\n    }\n  });\n}\n\nreturn results;"
+        "filePath": "scripts/build-relocation-request.js"
       },
       "id": "build-relocation-request",
       "name": "Build Relocation Analysis Request",
@@ -215,7 +215,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const relocationResp = $('LLM Relocation Analysis').first().json; const buildNode = $('Build Relocation Analysis Request').first().json; const raw = relocationResp.choices?.[0]?.message?.content || '{}'; let relocation = { approve: false, confidence: 'low', reason: 'parse_failed' }; try { relocation = JSON.parse(raw); } catch (e) {} const job = buildNode; const coverLetterTemplate = `Dear [HIRING_MANAGER / Hiring Team],\\n\\nI am writing to express my interest in the [JOB_TITLE] position at [COMPANY_NAME]. With over [YEARS_OF_EXPERIENCE] years of experience in software engineering, I bring strong expertise in scalable web applications, cloud-native systems, distributed architectures, and modern frontend/backend technologies.\\n\\nThroughout my career, I have worked across full-stack engineering, platform architecture, AI-integrated systems, and developer tooling. My experience includes building scalable applications using technologies such as React, TypeScript, Node.js, Python, cloud infrastructure, APIs, microservices, and modern engineering workflows. I have also contributed to technical leadership, mentoring engineers, improving development practices, and delivering production-grade systems at scale.\\n\\nIn my recent roles, I have worked on architecting internal platforms, AI-native workflows, enterprise applications, and reusable engineering systems that improve developer productivity and product scalability. I enjoy solving complex technical problems while balancing performance, maintainability, reliability, and user experience.\\n\\n[COMPANY_SPECIFIC_PARAGRAPH]\\n\\nWhat particularly interests me about this opportunity is the chance to contribute to impactful products while collaborating with strong engineering teams in a fast-paced environment. I am excited by opportunities where I can combine hands-on engineering with architectural thinking and long-term technical strategy.\\n\\nI would welcome the opportunity to further discuss how my background and experience align with your team's goals. Thank you for your time and consideration.\\n\\nWarm regards,\\n\\n[YOUR_NAME]\\n[YOUR_EMAIL] | [YOUR_PHONE] | [LINKEDIN_URL]`; const payload = { model: 'unsloth/Qwen3.5-9B-GGUF:Q6_K', temperature: 0.35, max_tokens: 10000, top_p: 0.9, repeat_penalty: 1.1, stop: ['<|im_end|>', '</s>'], messages: [{ role: 'system', content: `You are an expert technical cover letter writer for senior software engineering roles.\\n\\nYour task is to customize a professional, human-sounding cover letter for each job application.\\n\\nRules:\\n- Output ONLY the final cover letter\\n- Replace all placeholders correctly\\n- Write a concise but strong company-specific paragraph\\n- Align technical experience with the job description\\n- Keep tone professional and natural\\n- Avoid exaggeration and generic buzzwords\\n- No markdown\\n- No bullet points\\n- Keep it under 500 words\\n- Do not mention AI assistance` }, { role: 'user', content: `Base template:\\n${coverLetterTemplate}\\n\\nCandidate details:\\nName: Shirsak Sahoo\\nExperience: 7+\\nEmail: shirsaksahoo96@gmail.com\\nPhone: +91-7997187900\\nLinkedIn: linkedin.com/in/shirsaksahoo\\n\\nJob title: ${job.title}\\nCompany: ${job.company}\\nLocation: ${job.location}\\n\\nRelocation analysis:\\n${JSON.stringify(relocation)}\\n\\nJob description:\\n${(job.description || '')}` }], extra_body: { chat_template_kwargs: { enable_thinking: false } } }; return [{ json: { ...job, relocation_reason: relocation.reason, relocation_confidence: relocation.confidence, _llmPayload: payload } }];"
+        "filePath": "scripts/build-cover-letter-request.js"
       },
       "id": "build-cover-request",
       "name": "Build Cover Letter Request",
@@ -261,7 +261,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const llmItem = $input.first();\nconst reqItem = $('Build Cover Letter Request').first();\n\nif (!llmItem?.json || !reqItem?.json) {\n  return [];\n}\n\nconst coverLetter = (llmItem.json?.choices?.[0]?.message?.content || '').trim();\n\nif (!coverLetter) {\n  return [];\n}\n\nconst job = reqItem.json;\n\nreturn [{\n  json: {\n    date: new Date().toISOString().split('T')[0],\n    company: job.company || '',\n    title: job.title || '',\n    location: job.location || '',\n    url: job.url || '',\n    relocation_reason: job.relocation_reason || '',\n    relocation_confidence: job.relocation_confidence || '',\n    cover_letter: coverLetter,\n    status: 'Not Applied'\n  }\n}];"
+        "filePath": "scripts/assemble-row.js"
       },
       "id": "assemble-row",
       "name": "Assemble Row",
