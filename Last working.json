@@ -1,0 +1,501 @@
+{
+  "name": "NL Jobs - LLM Relocation + Cover Letter",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "34753f99-c561-43ee-b037-9385db1d7782",
+      "name": "Daily Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        -400,
+        96
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/curious_coder~linkedin-jobs-scraper/run-sync-get-dataset-items",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "={{ $env.APIFY_API_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=software%20engineer&location=Netherlands&f_TPR=r86400\"    ],\n  \"maxResults\": 100\n}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "d0d16cfd-ffe0-4565-ac1f-aa0b53670afc",
+      "name": "Scrape LinkedIn Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -160,
+        96
+      ],
+      "typeVersion": 4.4
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (const item of $input.all()) {\n  const j = item.json;\n\n  const url = (j.jobUrl || j.url || j.link || '').trim();\n  const title = j.title || j.jobTitle || j.position || '';\n  const company = j.company || j.companyName || '';\n  const location = j.location || j.jobLocation || '';\n  const description = j.description || j.jobDescription || j.descriptionHtml || '';\n\n  if (!url || !title || !description || description.length < 100) {\n    continue;\n  }\n\n  results.push({\n    json: {\n      url,\n      title,\n      company,\n      location,\n      description\n    }\n  });\n}\n\nconsole.log(`Jobs after normalization: ${results.length}`);\nreturn results;"
+      },
+      "id": "d4bcdbc2-4795-4904-9bc3-802559865d1e",
+      "name": "Normalize Jobs",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        80,
+        96
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1lGi7mXQZKTbaP4ytTr0F3tcyjkFO4lxDfTMcdpb-8E4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "8a3c17ae-2fbc-479e-90bf-218dd9688901",
+      "name": "Get Existing Jobs",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        80,
+        -144
+      ],
+      "typeVersion": 4.4,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TrXIngdk7ZtrUczP",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "query": "SELECT input1.* FROM input1\nLEFT JOIN input2 ON LOWER(TRIM(input1.url)) = LOWER(TRIM(input2.URL))\nWHERE input2.URL IS NULL"
+      },
+      "id": "c2422244-54b3-4867-b759-bfef0ad8c1ff",
+      "name": "Merge New + Existing",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        320,
+        96
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "jsCode": "const normalizeUrl = (url = '') => url.toString().split('?')[0].replace(/\\/$/, '').trim().toLowerCase();\nconst normalizeText = (v = '') => v.toString().trim().toLowerCase();\n\nconst existing = new Set();\n\nlet sheetRows = [];\ntry {\n  sheetRows = $('Get Existing Jobs').all();\n} catch (e) {\n  sheetRows = [];\n}\n\nfor (const row of sheetRows) {\n  const r = row.json || {};\n  const url = r.URL || r.Url || r.url || '';\n\n  if (!url) continue;\n\n  const key = [\n    normalizeUrl(url),\n    normalizeText(r.Company || r.company || ''),\n    normalizeText(r.Role || r.role || '')\n  ].join('|');\n\n  existing.add(key);\n}\n\nconst output = [];\n\nfor (const item of $input.all()) {\n  const job = item.json || {};\n\n  if (!job.url || !job.title) continue;\n\n  const key = [\n    normalizeUrl(job.url),\n    normalizeText(job.company || ''),\n    normalizeText(job.title)\n  ].join('|');\n\n  if (existing.has(key)) {\n    console.log(`Duplicate skipped: ${job.title} @ ${job.company}`);\n    continue;\n  }\n\n  output.push({ json: job });\n}\n\nconsole.log(`New unique jobs after dedup: ${output.length}`);\nreturn output;"
+      },
+      "id": "d2ab6ac5-1cff-4c53-a268-e57d481c5936",
+      "name": "Filter Duplicate URLs",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        560,
+        96
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "05bb29d5-f4ff-4a25-9663-83000e428fd6",
+      "name": "Split In Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        800,
+        96
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (const item of $input.all()) {\n  const job = item.json;\n\n  const trimmedDescription = (job.description || '');\n\n  const payload = {\n    model: 'unsloth/Qwen3.5-9B-GGUF:Q6_K',\n    temperature: 0.1,\n    max_tokens: 10000,\n    top_p: 0.9,\n    repeat_penalty: 1.05,\n    stop: ['<|im_end|>', '</s>'],\n    messages: [\n      {\n        role: 'system',\n        content: `You are an expert technical recruiter.\n\nAnalyze whether this job is suitable for an Indian software engineer relocating to the Netherlands.\n\nReturn ONLY valid JSON.\n\nRules:\n- approve=true if the role likely supports visa sponsorship, relocation, kennismigrant hiring, or international candidates.\n- approve=false if the role clearly requires Dutch only, EU citizenship, existing work authorization, or explicitly says no sponsorship.\n- confidence should be: high, medium, or low.\n- reason should be short.\n\nJSON format:\n{\n  \"approve\": true,\n  \"confidence\": \"high\",\n  \"reason\": \"mentions visa sponsorship\"\n}`\n      },\n      {\n        role: 'user',\n        content: `Job Title: ${job.title}\nCompany: ${job.company}\nLocation: ${job.location}\n\nDescription:\n${trimmedDescription}`\n      }\n    ],\n    extra_body: {\n      chat_template_kwargs: {\n        enable_thinking: false\n      }\n    }\n  };\n\n  results.push({\n    json: {\n      ...job,\n      _relocationPayload: payload\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "3ef6e208-be7a-4c02-ae70-ec5da4cf6cec",
+      "name": "Build Relocation Analysis Request",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1040,
+        96
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LLAMA_CPP_URL }}/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer no-key-needed"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json._relocationPayload) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "6236912b-c2e9-4395-820d-2a5083f01ccb",
+      "name": "LLM Relocation Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1280,
+        96
+      ],
+      "typeVersion": 4.4
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "approved-condition",
+              "leftValue": "={{ (() => {\nconst raw = $json.choices?.[0]?.message?.content || '{}';\ntry {\n  const parsed = JSON.parse(raw);\n  return parsed.approve === true;\n} catch(e) {\n  return false;\n}\n})() }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9697ec89-b021-4bfc-ab7f-89250dd38df1",
+      "name": "Approved Relocation?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1520,
+        96
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "jsCode": "const relocationResp = $('LLM Relocation Analysis').first().json;\nconst buildNode = $('Build Relocation Analysis Request').first().json;\n\nconst raw = relocationResp.choices?.[0]?.message?.content || '{}';\n\nlet relocation = {\n  approve: false,\n  confidence: 'low',\n  reason: 'parse_failed'\n};\n\ntry {\n  relocation = JSON.parse(raw);\n} catch (e) {}\n\nconst job = buildNode;\n\nconst coverLetterTemplate = `Dear [HIRING_MANAGER / Hiring Team],\nI am writing to express my interest in the [JOB_TITLE] position at [COMPANY_NAME]. With over 7 years of full-stack engineering experience — most recently as a Senior Software Engineer (SDE3 / Associate Vice President) at JPMorgan Chase Asset & Wealth Management — I bring deep expertise in React, TypeScript, Python, AWS, and AI-native system design, and I am actively pursuing relocation to the Netherlands under the Kennismigrant (Highly Skilled Migrant) pathway.\n\nAt JPMorgan, I architected MCP server infrastructure and built Connect Studio — an AI-native multi-persona platform that bridges LLM capabilities with real-world engineering workflows at scale. Prior to this, at Aurigo Software Technologies, I led frontend architecture across multiple product lines, delivered products and platforms serving 1,000+ concurrent users, and pioneered an EAA/ADA/WCAG accessibility initiative recognised in a company press release. I hold a B.E. from BITS Pilani and have mentored 10+ engineers across cross-functional teams.\n\n[COMPANY_SPECIFIC_PARAGRAPH]\n\nI am available for interviews at your convenience and am prepared to relocate to the Netherlands upon offer. My compensation expectation aligns with the Kennismigrant salary threshold for my age bracket, and I am open to discussing further.\n\nWarm regards,\nShirsak Sahoo\nshirsaksahoo96@gmail.com | +91-7997187900 | linkedin.com/in/shirsaksahoo`;\n\nconst payload = {\n  model: 'unsloth/Qwen3.5-9B-GGUF:Q6_K',\n  temperature: 0.35,\n  max_tokens: 10000,\n  top_p: 0.9,\n  repeat_penalty: 1.1,\n  stop: ['<|im_end|>', '</s>'],\n  messages: [\n    {\n      role: 'system',\n      content: `You are an expert cover letter writer for senior software engineers relocating to the Netherlands.\n\nOutput ONLY the final cover letter.\n\nRules:\n- Replace placeholders correctly\n- Write a strong company-specific paragraph\n- Keep the tone professional\n- No markdown\n- No bullet points`\n    },\n    {\n      role: 'user',\n      content: `Base template:\\n${coverLetterTemplate}\\n\\nJob title: ${job.title}\\nCompany: ${job.company}\\nLocation: ${job.location}\\n\\nRelocation analysis:\\n${JSON.stringify(relocation)}\\n\\nJob description:\\n${(job.description || '')}`\n    }\n  ],\n  extra_body: {\n    chat_template_kwargs: {\n      enable_thinking: false\n    }\n  }\n};\n\nreturn [{\n  json: {\n    ...job,\n    relocation_reason: relocation.reason,\n    relocation_confidence: relocation.confidence,\n    _llmPayload: payload\n  }\n}];"
+      },
+      "id": "e5a13c63-41e1-4f2f-901c-74a72c7ea399",
+      "name": "Build Cover Letter Request",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1760,
+        16
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LLAMA_CPP_URL }}/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer no-key-needed"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json._llmPayload) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "7afa49b7-a68e-45d8-aeff-d33953237e36",
+      "name": "LLM Generate Cover Letter",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        2000,
+        16
+      ],
+      "typeVersion": 4.4
+    },
+    {
+      "parameters": {
+        "jsCode": "const llmItem = $input.first();\nconst reqItem = $('Build Cover Letter Request').first();\n\nif (!llmItem?.json || !reqItem?.json) {\n  return [];\n}\n\nconst coverLetter = (llmItem.json?.choices?.[0]?.message?.content || '').trim();\n\nif (!coverLetter) {\n  return [];\n}\n\nconst job = reqItem.json;\n\nreturn [{\n  json: {\n    date: new Date().toISOString().split('T')[0],\n    company: job.company || '',\n    title: job.title || '',\n    location: job.location || '',\n    url: job.url || '',\n    relocation_reason: job.relocation_reason || '',\n    relocation_confidence: job.relocation_confidence || '',\n    cover_letter: coverLetter,\n    status: 'Not Applied'\n  }\n}];"
+      },
+      "id": "2fe260dc-f4a2-4658-a28d-ee5369c740aa",
+      "name": "Assemble Row",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        2240,
+        16
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1lGi7mXQZKTbaP4ytTr0F3tcyjkFO4lxDfTMcdpb-8E4",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "Date": "={{ $json.date }}",
+            "Company": "={{ $json.company }}",
+            "Role": "={{ $json.title }}",
+            "Location": "={{ $json.location }}",
+            "URL": "={{ $json.url }}",
+            "Relocation Reason": "={{ $json.relocation_reason }}",
+            "Confidence": "={{ $json.relocation_confidence }}",
+            "Cover Letter": "={{ $json.cover_letter }}",
+            "Status": "={{ $json.status }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "e61c91d1-6d96-4b5e-bec8-d05c6dd2af57",
+      "name": "Append To Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        2480,
+        16
+      ],
+      "typeVersion": 4.4,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TrXIngdk7ZtrUczP",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Daily Trigger": {
+      "main": [
+        [
+          {
+            "node": "Scrape LinkedIn Jobs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Existing Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape LinkedIn Jobs": {
+      "main": [
+        [
+          {
+            "node": "Normalize Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Jobs": {
+      "main": [
+        [
+          {
+            "node": "Merge New + Existing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Existing Jobs": {
+      "main": [
+        [
+          {
+            "node": "Merge New + Existing",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge New + Existing": {
+      "main": [
+        [
+          {
+            "node": "Filter Duplicate URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Duplicate URLs": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split In Batches": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Build Relocation Analysis Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Relocation Analysis Request": {
+      "main": [
+        [
+          {
+            "node": "LLM Relocation Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Relocation Analysis": {
+      "main": [
+        [
+          {
+            "node": "Approved Relocation?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved Relocation?": {
+      "main": [
+        [
+          {
+            "node": "Build Cover Letter Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Cover Letter Request": {
+      "main": [
+        [
+          {
+            "node": "LLM Generate Cover Letter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Generate Cover Letter": {
+      "main": [
+        [
+          {
+            "node": "Assemble Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Row": {
+      "main": [
+        [
+          {
+            "node": "Append To Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append To Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2f7ba481-3599-473a-bafa-b0d745e90309",
+  "meta": {
+    "instanceId": "ff4fcd04e02b0883c04ba691a16e0b39ce6580e81776fe61b57c57637edaca8b"
+  },
+  "id": "hBkMlX1zLQlGKz6b",
+  "tags": []
+}
