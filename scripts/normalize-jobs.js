@@ -3,7 +3,10 @@ const results = [];
 for (const item of $input.all()) {
   const j = item.json;
 
-  const url = (j.jobUrl || j.url || j.link || '').trim();
+  const url = (j.jobUrl || j.url || j.link || '')
+    .trim()
+    .replace(/\?.*$/, '')
+    .toLowerCase();
   const title = (j.title || j.jobTitle || j.position || '').trim();
   const company = (j.company || j.companyName || '').trim();
   const location = (j.location || j.jobLocation || '').trim();
