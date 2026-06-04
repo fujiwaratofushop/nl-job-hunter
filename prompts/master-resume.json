@@ -58,7 +58,7 @@
         "Architected and built MCP servers for the design system and toolkit, enabling LLM-native access to component APIs, design tokens, and usage guidelines",
         "Created Connect Studio — an AI-native platform supporting multiple personas and workflows including design-to-code, story-to-code, and Jira-to-code, enabling rapid development of production-ready interfaces using the next-gen Connect component library",
         "Built AI-native systems that integrate LLMs deeply into engineering and design workflows, bridging the gap between AI capabilities and real-world product delivery",
-        "Owned AWS infrastructure operations for Connect OS across multi-region environments, covering Amazon Connect, EFS, S3, certificates, deployment pipelines, and CloudWatch observability"
+        "Owned AWS infrastructure operations for Connect OS across multi-region environments, EFS, S3, certificates, deployment pipelines, and CloudWatch observability"
       ]
     },
     {

@@ -12,12 +12,12 @@
           ]
         }
       },
-      "id": "34753f99-c561-43ee-b037-9385db1d7782",
+      "id": "67109a61-8226-445d-b387-369e7cffeeb1",
       "name": "Daily Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "position": [
-        -400,
-        96
+        -208,
+        192
       ],
       "typeVersion": 1.3
     },
@@ -36,17 +36,17 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=software%20engineer&location=Netherlands&f_TPR=r86400\"    ],\n  \"maxResults\": 100\n}",
+        "jsonBody": "{\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=software%20engineer%20visa%20sponsorship&location=Europe&f_TPR=r86400\"\n  ],\n  \"maxResults\": 100\n}",
         "options": {
           "timeout": 300000
         }
       },
-      "id": "d0d16cfd-ffe0-4565-ac1f-aa0b53670afc",
+      "id": "e9b4eb84-5fe5-4484-881e-e76a55d12db6",
       "name": "Scrape LinkedIn Jobs",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        -160,
-        96
+        32,
+        192
       ],
       "typeVersion": 4.4
     },
@@ -54,12 +54,12 @@
       "parameters": {
         "filePath": "scripts/normalize-jobs.js"
       },
-      "id": "d4bcdbc2-4795-4904-9bc3-802559865d1e",
+      "id": "346775fe-930a-487c-8781-33b35cb21d3f",
       "name": "Normalize Jobs",
       "type": "n8n-nodes-base.code",
       "position": [
-        80,
-        96
+        96,
+        496
       ],
       "typeVersion": 2
     },
@@ -77,12 +77,12 @@
         },
         "options": {}
       },
-      "id": "8a3c17ae-2fbc-479e-90bf-218dd9688901",
+      "id": "3b29044c-d56f-41ae-80f6-1d6cf7de2fb2",
       "name": "Get Existing Jobs",
       "type": "n8n-nodes-base.googleSheets",
       "position": [
-        80,
-        -144
+        272,
+        -48
       ],
       "typeVersion": 4.4,
       "alwaysOutputData": true,
@@ -96,14 +96,14 @@
     {
       "parameters": {
         "mode": "combineBySql",
-        "query": "SELECT input1.* FROM input1\nLEFT JOIN input2 ON LOWER(TRIM(input1.url)) = LOWER(TRIM(input2.URL))\nWHERE input2.URL IS NULL"
+        "query": "SELECT input1.* FROM input1 LEFT JOIN input2 ON LOWER(TRIM(input1.url)) = LOWER(TRIM(input2.url)) WHERE input2.url IS NULL"
       },
-      "id": "c2422244-54b3-4867-b759-bfef0ad8c1ff",
+      "id": "f420c723-7054-4160-8347-101602b0aa45",
       "name": "Merge New + Existing",
       "type": "n8n-nodes-base.merge",
       "position": [
-        320,
-        96
+        512,
+        192
       ],
       "typeVersion": 3
     },
@@ -111,12 +111,12 @@
       "parameters": {
         "filePath": "scripts/filter-duplicates.js"
       },
-      "id": "d2ab6ac5-1cff-4c53-a268-e57d481c5936",
+      "id": "cfc0993f-6015-4697-982c-e3dbd13722bd",
       "name": "Filter Duplicate URLs",
       "type": "n8n-nodes-base.code",
       "position": [
-        560,
-        96
+        752,
+        192
       ],
       "typeVersion": 2
     },
@@ -124,25 +124,25 @@
       "parameters": {
         "options": {}
       },
-      "id": "05bb29d5-f4ff-4a25-9663-83000e428fd6",
+      "id": "9399ef17-5294-4406-99a9-612ec58d1ff4",
       "name": "Split In Batches",
       "type": "n8n-nodes-base.splitInBatches",
       "position": [
-        800,
-        96
+        992,
+        192
       ],
       "typeVersion": 3
     },
     {
       "parameters": {
-        "filePath": "scripts/build-relocation-request.js"
+        "jsCode": "const results = [];\n\nfor (const item of $input.all()) {\n  const job = item.json;\n\n  const coverLetterTemplate = `Dear Hiring Team,\nI am writing to express my interest in the [JOB_TITLE] position at [COMPANY_NAME]. With over 7 years of full-stack engineering experience — most recently as a Senior Software Engineer (SDE3 / Associate Vice President) at JPMorgan Chase Asset & Wealth Management — I bring deep expertise in React, TypeScript, Python, AWS, and AI-native system design, and I am actively pursuing relocation to Europe.\n\nAt JPMorgan, I architected MCP server infrastructure and built Connect Studio — an AI-native multi-persona platform that bridges LLM capabilities with real-world engineering workflows at scale. Prior to this, at Aurigo Software Technologies, I led frontend architecture across multiple product lines, delivered products and platforms serving 1,000+ concurrent users, and pioneered an EAA/ADA/WCAG accessibility initiative recognised in a company press release. I hold a B.E. from BITS Pilani and have mentored 10+ engineers across cross-functional teams.\n\n[COMPANY_SPECIFIC_PARAGRAPH]\n\nI am available for interviews at your convenience and am prepared to relocate upon offer. My compensation expectation aligns with the relevant Highly Skilled Migrant salary threshold for my age bracket, and I am open to discussing further.\n\nWarm regards,\nShirsak Sahoo\nshirsaksahoo96@gmail.com | +91-7997187900 | linkedin.com/in/shirsaksahoo`;\n\n  const payload = {\n    model: 'unsloth/Qwen3.5-9B-GGUF:Q6_K',\n    temperature: 0.2,\n    max_tokens: 10000,\n    top_p: 0.9,\n    repeat_penalty: 1.05,\n    stop: ['</s>', '\\n\\n'],\n    messages: [\n      {\n        role: 'system',\n        content: `You are an expert technical recruiter and cover letter writer for senior software engineering roles.\n\nYour task has TWO parts. Analyze the job posting, then write a tailored cover letter if approved.\n\nReturn ONLY valid JSON — no prose, no markdown, no explanation outside the JSON.\n\n## PART 1 — Relocation/Sponsorship Analysis\n\n### HARD REJECT — set approve=false immediately if the description contains ANY of:\n- Negated sponsorship: \"do not sponsor\", \"cannot sponsor\", \"unable to sponsor\", \"no sponsorship\", \"sponsorship not available\", \"we do not offer visa\", \"we don't offer visa\"\n- Negated relocation: \"do not support relocation\", \"cannot support relocation\", \"no relocation\", \"relocation not provided\", \"we do not provide relocation\", \"we don't support relocation\"\n- Right-to-work restrictions: \"must have right to work\", \"must be eligible to work\", \"must already have\", \"no right to work sponsorship\", \"candidates must hold\", \"applicants must be\", \"you must already hold\"\n- Citizenship/residency requirements: \"EU citizenship required\", \"must be EU citizen\", \"dutch citizen\", \"dutch nationality\", \"permanent resident only\", \"must hold indefinite leave\"\n\nIMPORTANT: The presence of the word 'relocation' or 'sponsorship' alone does NOT make a job approvable — read the FULL phrase for polarity. \"We support relocation\" = positive. \"We do NOT support relocation\" = hard reject.\n\n### APPROVE — set approve=true only if the description clearly states:\n- Explicit visa sponsorship offered: \"visa sponsorship\", \"we sponsor visas\", \"sponsorship available\", \"visa support provided\"\n- Explicit relocation support: \"relocation package\", \"relocation assistance\", \"we support relocation\", \"relocation provided\"\n- Kennismigrant / Highly Skilled Migrant / HSM / Blue Card sponsorship mentioned\n- International candidates explicitly welcomed: \"open to international applicants\", \"global candidates welcome\"\n\n### UNCERTAIN — set approve=false\nIf nothing about sponsorship or work authorization is mentioned, approve=false. No benefit of the doubt.\n\n## PART 2 — Cover Letter (only if approve=true)\n\nIf approve=true: write a professional, human-sounding cover letter using the base template provided. Replace all placeholders. Write a concise company-specific paragraph. Keep it under 500 words. No markdown. No bullet points. No AI mentions.\n\nIf approve=false: set cover_letter to empty string \"\".\n\n## Output JSON format — return exactly this structure:\n{\n  \"approve\": true,\n  \"confidence\": \"high\",\n  \"reason\": \"mentions visa sponsorship\",\n  \"cover_letter\": \"Dear Hiring Team, ...\"\n}`\n      },\n      {\n        role: 'user',\n        content: `Job Title: ${job.title}\nCompany: ${job.company}\nLocation: ${job.location}\n\nBase cover letter template:\n${coverLetterTemplate}\n\nCandidate details:\nName: Shirsak Sahoo\nExperience: 7+ years\nEmail: shirsaksahoo96@gmail.com\nPhone: +91-7997187900\nLinkedIn: linkedin.com/in/shirsaksahoo\n\nJob Description:\n${(job.description || '')}`\n      }\n    ],\n    extra_body: {\n      chat_template_kwargs: {\n        enable_thinking: false\n      }\n    }\n  };\n\n  results.push({\n    json: {\n      ...job,\n      _llmPayload: payload\n    }\n  });\n}\n\nreturn results;"
       },
-      "id": "3ef6e208-be7a-4c02-ae70-ec5da4cf6cec",
-      "name": "Build Relocation Analysis Request",
+      "id": "2f6af7a8-0dd0-4e8e-be1a-bb2135370974",
+      "name": "Build LLM Request",
       "type": "n8n-nodes-base.code",
       "position": [
-        1040,
-        96
+        1232,
+        192
       ],
       "typeVersion": 2
     },
@@ -165,17 +165,17 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json._relocationPayload) }}",
+        "jsonBody": "={{ JSON.stringify($json._llmPayload) }}",
         "options": {
           "timeout": 300000
         }
       },
-      "id": "6236912b-c2e9-4395-820d-2a5083f01ccb",
-      "name": "LLM Relocation Analysis",
+      "id": "b3419084-a9f9-4386-b797-d2bc26d50d27",
+      "name": "LLM Analysis + Cover Letter",
       "type": "n8n-nodes-base.httpRequest",
       "position": [
-        1280,
-        96
+        1472,
+        192
       ],
       "typeVersion": 4.4
     },
@@ -204,71 +204,25 @@
         },
         "options": {}
       },
-      "id": "9697ec89-b021-4bfc-ab7f-89250dd38df1",
+      "id": "cb0c1d47-6059-4887-9c9e-f714df3b7330",
       "name": "Approved Relocation?",
       "type": "n8n-nodes-base.if",
       "position": [
-        1520,
-        96
+        1712,
+        192
       ],
       "typeVersion": 2.2
     },
     {
       "parameters": {
-        "filePath": "scripts/build-cover-letter-request.js"
+        "jsCode": "const llmItem = $input.first();\nconst buildItem = $('Build LLM Request').first();\n\nif (!llmItem?.json || !buildItem?.json) {\n  return [];\n}\n\nconst raw = (llmItem.json?.choices?.[0]?.message?.content || '').trim();\n\nlet parsed = { approve: false, confidence: 'low', reason: 'parse_failed', cover_letter: '' };\ntry {\n  parsed = JSON.parse(raw);\n} catch (e) {\n  return [];\n}\n\nconst coverLetter = (parsed.cover_letter || '').trim();\nif (!coverLetter) {\n  return [];\n}\n\nconst job = buildItem.json;\n\nreturn [{\n  json: {\n    date: new Date().toISOString().split('T')[0],\n    company: (job.company || '').trim(),\n    title: (job.title || '').trim(),\n    location: (job.location || '').trim(),\n    url: (job.url || '')\n    .trim()\n    .replace(/\\?.*$/, '')\n    .toLowerCase(),\n    relocation_reason: (parsed.reason || '').trim(),\n    relocation_confidence: (parsed.confidence || '').trim(),\n    cover_letter: coverLetter,\n    status: 'Not Applied'\n  }\n}];"
       },
-      "id": "e5a13c63-41e1-4f2f-901c-74a72c7ea399",
-      "name": "Build Cover Letter Request",
-      "type": "n8n-nodes-base.code",
-      "position": [
-        1760,
-        16
-      ],
-      "typeVersion": 2
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.LLAMA_CPP_URL }}/v1/chat/completions",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "Authorization",
-              "value": "Bearer no-key-needed"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json._llmPayload) }}",
-        "options": {
-          "timeout": 300000
-        }
-      },
-      "id": "7afa49b7-a68e-45d8-aeff-d33953237e36",
-      "name": "LLM Generate Cover Letter",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [
-        2000,
-        16
-      ],
-      "typeVersion": 4.4
-    },
-    {
-      "parameters": {
-        "filePath": "scripts/assemble-row.js"
-      },
-      "id": "2fe260dc-f4a2-4658-a28d-ee5369c740aa",
+      "id": "cffc29c8-7acf-478f-a9f7-89372b3e03c3",
       "name": "Assemble Row",
       "type": "n8n-nodes-base.code",
       "position": [
-        2240,
-        16
+        1952,
+        112
       ],
       "typeVersion": 2
     },
@@ -301,12 +255,12 @@
         },
         "options": {}
       },
-      "id": "e61c91d1-6d96-4b5e-bec8-d05c6dd2af57",
+      "id": "8dd055eb-b463-42dd-8385-9cdb66b1541f",
       "name": "Append To Google Sheet",
       "type": "n8n-nodes-base.googleSheets",
       "position": [
-        2480,
-        16
+        2192,
+        112
       ],
       "typeVersion": 4.4,
       "credentials": {
@@ -395,25 +349,25 @@
         [],
         [
           {
-            "node": "Build Relocation Analysis Request",
+            "node": "Build LLM Request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Build Relocation Analysis Request": {
+    "Build LLM Request": {
       "main": [
         [
           {
-            "node": "LLM Relocation Analysis",
+            "node": "LLM Analysis + Cover Letter",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "LLM Relocation Analysis": {
+    "LLM Analysis + Cover Letter": {
       "main": [
         [
           {
@@ -425,35 +379,6 @@
       ]
     },
     "Approved Relocation?": {
-      "main": [
-        [
-          {
-            "node": "Build Cover Letter Request",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Split In Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Build Cover Letter Request": {
-      "main": [
-        [
-          {
-            "node": "LLM Generate Cover Letter",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "LLM Generate Cover Letter": {
       "main": [
         [
           {
@@ -474,17 +399,6 @@
           }
         ]
       ]
-    },
-    "Append To Google Sheet": {
-      "main": [
-        [
-          {
-            "node": "Split In Batches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "active": false,
@@ -492,10 +406,10 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "2f7ba481-3599-473a-bafa-b0d745e90309",
+  "versionId": "8a202c5b-61ef-4950-b285-0e11f104b5dc",
   "meta": {
     "instanceId": "ff4fcd04e02b0883c04ba691a16e0b39ce6580e81776fe61b57c57637edaca8b"
   },
-  "id": "hBkMlX1zLQlGKz6b",
+  "id": "BRuKl2MIPMnNHxYE",
   "tags": []
 }
