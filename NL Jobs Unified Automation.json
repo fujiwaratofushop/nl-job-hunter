@@ -36,7 +36,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=software%20engineer%20visa%20sponsorship&location=Europe&f_TPR=r86400\"\n  ],\n  \"maxResults\": 100\n}",
+        "jsonBody": "{\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=software%20engineer%20visa%20sponsorship&location=netherlands&f_TPR=r86400\"\n  ],\n  \"maxResults\": 100\n}",
         "options": {
           "timeout": 300000
         }
@@ -52,7 +52,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const results = [];\r\n\r\nfor (const item of $input.all()) {\r\n  const j = item.json;\r\n\r\n  const url = (j.jobUrl || j.url || j.link || '')\r\n    .trim()\r\n    .replace(/\\?.*$/, '')\r\n    .toLowerCase();\r\n  const title = (j.title || j.jobTitle || j.position || '').trim();\r\n  const company = (j.company || j.companyName || '').trim();\r\n  const location = (j.location || j.jobLocation || '').trim();\r\n  const description = (j.description || j.jobDescription || j.descriptionHtml || '').trim();\r\n\r\n  if (!url || !title || !description || description.length < 100) {\r\n    continue;\r\n  }\r\n\r\n  results.push({\r\n    json: {\r\n      url,\r\n      title,\r\n      company,\r\n      location,\r\n      description\r\n    }\r\n  });\r\n}\r\n\r\nconsole.log(`Jobs after normalization: ${results.length}`);\r\nreturn results;"
+        "jsCode": "const results = [];\r\n\r\nfor (const item of $input.all()) {\r\n  const j = item.json;\r\n\r\n  const url = (j.jobUrl || j.url || j.link || '').trim();\r\n  const title = (j.title || j.jobTitle || j.position || '').trim();\r\n  const company = (j.company || j.companyName || '').trim();\r\n  const location = (j.location || j.jobLocation || '').trim();\r\n  const description = (j.description || j.jobDescription || j.descriptionHtml || '').trim();\r\n\r\n  if (!url || !title || !description || description.length < 100) {\r\n    continue;\r\n  }\r\n\r\n  results.push({\r\n    json: {\r\n      url,\r\n      title,\r\n      company,\r\n      location,\r\n      description\r\n    }\r\n  });\r\n}\r\n\r\nconsole.log(`Jobs after normalization: ${results.length}`);\r\nreturn results;"
       },
       "id": "346775fe-930a-487c-8781-33b35cb21d3f",
       "name": "Normalize Jobs",
@@ -183,7 +183,7 @@
       "parameters": {
         "conditions": {
           "options": {
-            "caseSensitive": false,
+            "caseSensitive": true,
             "leftValue": "",
             "typeValidation": "strict",
             "version": 2
@@ -241,17 +241,112 @@
         },
         "columns": {
           "mappingMode": "autoMapInputData",
-          "value": {
-            "Date": "={{ $json.date }}",
-            "Company": "={{ $json.company }}",
-            "Role": "={{ $json.title }}",
-            "Location": "={{ $json.location }}",
-            "URL": "={{ $json.url }}",
-            "Relocation Reason": "={{ $json.relocation_reason }}",
-            "Confidence": "={{ $json.relocation_confidence }}",
-            "Cover Letter": "={{ $json.cover_letter }}",
-            "Status": "={{ $json.status }}"
-          }
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "relocation_signals",
+              "displayName": "relocation_signals",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "relocation_confidence",
+              "displayName": "relocation_confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "cover_letter",
+              "displayName": "cover_letter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "relocation_reason",
+              "displayName": "relocation_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {}
       },
@@ -272,7 +367,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const HARD_REJECT = [\n  // Negated sponsorship\n  /\\bdo(?:es)?\\s+not\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  /\\bcannot\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  /\\bunable\\s+to\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  /\\bno\\s+(?:visa\\s+)?sponsorship\\b/i,\n  /\\bsponsorship\\s+(?:is\\s+)?not\\s+(?:available|offered|provided)/i,\n  /\\bwe\\s+don['\\u2019]t\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  /\\bwe\\s+do\\s+not\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  // Negated relocation\n  /\\bdo(?:es)?\\s+not\\s+support\\s+relocation\\b/i,\n  /\\bcannot\\s+support\\s+relocation\\b/i,\n  /\\bno\\s+relocation\\b/i,\n  /\\brelocation\\s+(?:is\\s+)?not\\s+(?:provided|available|offered|supported)/i,\n  /\\bwe\\s+don['\\u2019]t\\s+(?:support|provide|offer)\\s+relocation\\b/i,\n  /\\bwe\\s+do\\s+not\\s+(?:support|provide|offer)\\s+relocation\\b/i,\n  // Right-to-work blocks\n  /\\bmust\\s+(?:already\\s+)?have\\s+(?:the\\s+)?right\\s+to\\s+work\\b/i,\n  /\\bmust\\s+be\\s+eligible\\s+to\\s+work\\b/i,\n  /\\bno\\s+right\\s+to\\s+work\\s+sponsorship\\b/i,\n  /\\byou\\s+must\\s+already\\s+hold\\b/i,\n  /\\bcandidates\\s+must\\s+(?:hold|have|be)\\b/i,\n  /\\bapplicants\\s+must\\s+(?:hold|have|be)\\b/i,\n  // Citizenship / residency hard walls\n  /\\bEU\\s+citizenship\\s+(?:is\\s+)?required\\b/i,\n  /\\bmust\\s+be\\s+(?:an?\\s+)?EU\\s+citizen\\b/i,\n  /\\bdutch\\s+(?:citizen|national|citizenship|nationality)\\b/i,\n  /\\bpermanent\\s+resident\\s+only\\b/i,\n  /\\bmust\\s+hold\\s+indefinite\\s+leave\\b/i,\n  // Additional rejection patterns\n  /\\bonly\\s+(?:consider|accepting)\\s+(?:local|on-?site)\\s+candidates\\b/i,\n  /\\bwork\\s+(?:authorization|permit)\\s+(?:is\\s+)?required\\b/i,\n  /\\bmust\\s+be\\s+(?:legally\\s+)?authorized\\s+to\\s+work\\b/i,\n  /\\bauthorized\\s+to\\s+work\\s+in\\s+(?:the\\s+)?(?:US|UK|EU|Netherlands|Germany)\\s+(?:is\\s+)?required\\b/i,\n  /\\bno\\s+work\\s+permit\\s+(?:support|sponsorship)\\b/i\n];\n\nconst HARD_APPROVE = [\n  // Explicit visa / work permit sponsorship\n  /\\bwe\\s+(?:offer|provide|support|will\\s+sponsor)\\s+(?:visa|work\\s+permit)\\s+sponsorship\\b/i,\n  /\\bvisa\\s+sponsorship\\s+(?:is\\s+)?(?:available|offered|provided|supported)\\b/i,\n  /\\bsponsorship\\s+(?:is\\s+)?(?:available|offered|provided)\\s+for\\s+(?:this\\s+)?(?:role|position)\\b/i,\n  /\\bwill\\s+sponsor\\s+(?:a\\s+)?(?:visa|work\\s+permit)\\b/i,\n  /\\bvisa\\s+support\\s+(?:is\\s+)?(?:available|provided|offered)\\b/i,\n  /\\bwork\\s+permit\\s+(?:support|sponsorship|assistance)\\s+(?:is\\s+)?(?:available|provided|offered)\\b/i,\n  // Kennismigrant / Blue Card / HSM explicit\n  /\\bkennismigrant\\b/i,\n  /\\bhighly\\s+skilled\\s+migrant\\b/i,\n  /\\bHSM\\s+(?:visa|permit|sponsorship)\\b/i,\n  /\\bEU\\s+Blue\\s+Card\\b/i,\n  /\\bblue\\s+card\\s+sponsorship\\b/i,\n  // Relocation support\n  /\\brelocation\\s+(?:package|assistance|support|allowance|budget)\\s+(?:is\\s+)?(?:available|provided|offered|included)\\b/i,\n  /\\bwe\\s+(?:offer|provide|support)\\s+relocation\\b/i,\n  /\\bfull\\s+relocation\\s+(?:package|support|assistance)\\b/i,\n  /\\brelocation\\s+covered\\b/i,\n  // International / global candidates explicitly welcome\n  /\\bopen\\s+to\\s+(?:international|global|worldwide)\\s+(?:applicants?|candidates?)\\b/i,\n  /\\binternational\\s+candidates?\\s+(?:are\\s+)?(?:welcome|encouraged\\s+to\\s+apply)\\b/i,\n  /\\bglobal\\s+talent\\s+(?:welcome|program)\\b/i,\n  /\\bwelcome\\s+applicants?\\s+from\\s+(?:outside|abroad|any\\s+country)\\b/i,\n  // IND / Dutch immigration process mentions\n  /\\bIND\\s+(?:application|process|sponsorship|registration)\\b/i,\n  /\\bregistered\\s+(?:IND\\s+)?(?:knowledge\\s+)?migrant\\s+sponsor\\b/i\n];\n\nconst output = [];\n\nfor (const item of $input.all()) {\n  const job = item.json;\n  const text = ((job.title || '') + ' ' + (job.description || ''));\n\n  // 1. Hard reject — drop immediately\n  const rejected = HARD_REJECT.find(rx => rx.test(text));\n  if (rejected) {\n    console.log(`HARD REJECT: ${job.title} @ ${job.company} — matched: ${rejected}`);\n    continue;\n  }\n\n  // 2. Hard approve — tag and pass through\n  const approved = HARD_APPROVE.find(rx => rx.test(text));\n  if (approved) {\n    console.log(`HARD APPROVE: ${job.title} @ ${job.company} — matched: ${approved}`);\n    output.push({\n      json: {\n        ...job,\n        _regex_verdict: 'approved',\n        _regex_reason: approved.toString(),\n        _regex_confidence: 'high'\n      }\n    });\n    continue;\n  }\n\n  // 3. Uncertain — pass to LLM\n  output.push({\n    json: {\n      ...job,\n      _regex_verdict: 'uncertain',\n      _regex_reason: 'no_signal',\n      _regex_confidence: 'low'\n    }\n  });\n}\n\nconst approved_count = output.filter(i => i.json._regex_verdict === 'approved').length;\nconst uncertain_count = output.filter(i => i.json._regex_verdict === 'uncertain').length;\nconsole.log(`Regex results — approved: ${approved_count}, uncertain (→LLM): ${uncertain_count}`);\nreturn output;"
+        "jsCode": "const HARD_REJECT = [\n  // Negated sponsorship\n  /\\bdo(?:es)?\\s+not\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  /\\bcannot\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  /\\bunable\\s+to\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  /\\bno\\s+(?:visa\\s+)?sponsorship\\b/i,\n  /\\bsponsorship\\s+(?:is\\s+)?not\\s+(?:available|offered|provided)/i,\n  /\\bwe\\s+don['\\u2019]t\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  /\\bwe\\s+do\\s+not\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  // Negated relocation\n  /\\bdo(?:es)?\\s+not\\s+support\\s+relocation\\b/i,\n  /\\bcannot\\s+support\\s+relocation\\b/i,\n  /\\bno\\s+relocation\\b/i,\n  /\\brelocation\\s+(?:is\\s+)?not\\s+(?:provided|available|offered|supported)/i,\n  /\\bwe\\s+don['\\u2019]t\\s+(?:support|provide|offer)\\s+relocation\\b/i,\n  /\\bwe\\s+do\\s+not\\s+(?:support|provide|offer)\\s+relocation\\b/i,\n  // Right-to-work blocks\n  /\\bmust\\s+(?:already\\s+)?have\\s+(?:the\\s+)?right\\s+to\\s+work\\b/i,\n  /\\bmust\\s+be\\s+eligible\\s+to\\s+work\\b/i,\n  /\\bno\\s+right\\s+to\\s+work\\s+sponsorship\\b/i,\n  /\\byou\\s+must\\s+already\\s+hold\\b/i,\n  /\\bcandidates\\s+must\\s+(?:hold|have|be)\\b/i,\n  /\\bapplicants\\s+must\\s+(?:hold|have|be)\\b/i,\n  // Citizenship / residency hard walls\n  /\\bEU\\s+citizenship\\s+(?:is\\s+)?required\\b/i,\n  /\\bmust\\s+be\\s+(?:an?\\s+)?EU\\s+citizen\\b/i,\n  /\\bdutch\\s+(?:citizen|national|citizenship|nationality)\\b/i,\n  /\\bpermanent\\s+resident\\s+only\\b/i,\n  /\\bmust\\s+hold\\s+indefinite\\s+leave\\b/i,\n  // Additional rejection patterns\n  /\\bonly\\s+(?:consider|accepting)\\s+(?:local|on-?site)\\s+candidates\\b/i,\n  /\\bwork\\s+(?:authorization|permit)\\s+(?:is\\s+)?required\\b/i,\n  /\\bmust\\s+be\\s+(?:legally\\s+)?authorized\\s+to\\s+work\\b/i,\n  /\\bauthorized\\s+to\\s+work\\s+in\\s+(?:the\\s+)?(?:US|UK|EU|Netherlands|Germany)\\s+(?:is\\s+)?required\\b/i,\n  /\\bno\\s+work\\s+permit\\s+(?:support|sponsorship)\\b/i\n];\n\nconst output = [];\n\nfor (const item of $input.all()) {\n  const job = item.json;\n  const text = ((job.title || '') + ' ' + (job.description || ''));\n\n  // 1. Hard reject — drop immediately\n  const rejected = HARD_REJECT.find(rx => rx.test(text));\n  if (rejected) {\n    console.log(`HARD REJECT: ${job.title} @ ${job.company} — matched: ${rejected}`);\n    continue;\n  }\n\n  // 2. Everything else → LLM\n  output.push({\n    json: {\n      ...job,\n      _regex_verdict: 'uncertain',\n      _regex_reason: 'no_signal',\n      _regex_confidence: 'low'\n    }\n  });\n}\n\nconsole.log(`Regex results — rejected dropped, ${output.length} passed to LLM`);\nreturn output;"
       },
       "id": "d5576739-bd90-448a-812c-fcc7a4c8809f",
       "name": "Regex Hard Filter",
@@ -448,7 +543,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "8a202c5b-61ef-4950-b285-0e11f104b5dc",
+  "versionId": "32edf9ab-d627-4988-8266-b9e7a5d351aa",
   "meta": {
     "instanceId": "ff4fcd04e02b0883c04ba691a16e0b39ce6580e81776fe61b57c57637edaca8b"
   },
