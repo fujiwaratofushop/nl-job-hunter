@@ -16,8 +16,7 @@ const SCRIPTS_DIR = path.join(ROOT_DIR, 'scripts');
 // Map of filePath references to their actual script files
 const SCRIPT_MAP = {
   'scripts/normalize-jobs.js': 'normalize-jobs.js',
-  'scripts/filter-duplicates.js': 'filter-duplicates.js',
-  'scripts/build-relocation-request.js': 'build-relocation-request.js',
+  'scripts/pre-filter.js': 'pre-filter.js',
   'scripts/build-cover-letter-request.js': 'build-cover-letter-request.js',
   'scripts/assemble-row.js': 'assemble-row.js'
 };

@@ -1,12 +1,11 @@
-// Assemble row for approved jobs after cover letter generation
-const llmItem = $input.first().json;
-const buildItem = $input.first().json;
+const llmItem = $input.first();
+const buildItem = $('Build LLM Request').first();
 
-if (!llmItem?.json?.choices || !buildItem?.json) {
+if (!llmItem?.json || !buildItem?.json) {
   return [];
 }
 
-const raw = (llmItem.json.choices[0].message.content || '').trim();
+const raw = (llmItem.json?.choices?.[0]?.message?.content || '').trim();
 
 let parsed = { approve: false, confidence: 'low', reason: 'parse_failed', cover_letter: '' };
 try {
@@ -28,10 +27,7 @@ return [{
     company: (job.company || '').trim(),
     title: (job.title || '').trim(),
     location: (job.location || '').trim(),
-    url: (job.url || '')
-      .trim()
-      .replace(/\?.*$/, '')
-      .toLowerCase(),
+    url: (job.url || ''),
     relocation_reason: (parsed.reason || '').trim(),
     relocation_confidence: (parsed.confidence || '').trim(),
     cover_letter: coverLetter,
