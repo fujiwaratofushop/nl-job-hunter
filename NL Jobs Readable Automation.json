@@ -92,7 +92,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const results = [];\nfor (const item of $input.all()) {\n  const j = item.json;\n  const url = (j.jobUrl || j.url || j.link || '').trim();\n  const title = (j.title || j.jobTitle || j.position || j.positionName || '').trim();\n  const company = (j.company || j.companyName || '').trim();\n\n  const rawLocation = j.location || j.jobLocation || '';\n  let location;\n  if (typeof rawLocation === 'object' && rawLocation !== null) {\n    location = rawLocation.formattedAddressShort || rawLocation.fullAddress || rawLocation.city || '';\n  } else {\n    location = rawLocation;\n  }\n  location = String(location).trim();\n\n  const description = (j.description || j.jobDescription || j.descriptionHtml || '').trim();\n\n  if (!url || !title || !description || description.length < 100) {\n    continue;\n  }\n\n  results.push({ json: { url, title, company, location, description } });\n}\nconsole.log(`Jobs after normalization: ${results.length}`);\nreturn results;"
+        "filePath": "scripts/normalize-jobs.js"
       },
       "id": "4b3d9ea5-512b-4fb9-ab9b-38ab47eda1c9",
       "name": "Normalize Jobs",
@@ -105,7 +105,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const HARD_REJECT = [\n  // Negated sponsorship\n  /\\bdo(?:es)?\\s+not\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  /\\bcannot\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  /\\bunable\\s+to\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  /\\bno\\s+(?:visa\\s+)?sponsorship\\b/i,\n  /\\bsponsorship\\s+(?:is\\s+)?not\\s+(?:available|offered|provided)/i,\n  /\\bwe\\s+don['\\u2019]t\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  /\\bwe\\s+do\\s+not\\s+(?:offer|provide|support)?\\s*(?:visa\\s+)?sponsor/i,\n  // Negated relocation\n  /\\bdo(?:es)?\\s+not\\s+support\\s+relocation\\b/i,\n  /\\bcannot\\s+support\\s+relocation\\b/i,\n  /\\bno\\s+relocation\\b/i,\n  /\\brelocation\\s+(?:is\\s+)?not\\s+(?:provided|available|offered|supported)/i,\n  /\\bwe\\s+don['\\u2019]t\\s+(?:support|provide|offer)\\s+relocation\\b/i,\n  /\\bwe\\s+do\\s+not\\s+(?:support|provide|offer)\\s+relocation\\b/i,\n  // Right-to-work blocks\n  /\\bmust\\s+(?:already\\s+)?have\\s+(?:the\\s+)?right\\s+to\\s+work\\b/i,\n  /\\bmust\\s+be\\s+eligible\\s+to\\s+work\\b/i,\n  /\\bno\\s+right\\s+to\\s+work\\s+sponsorship\\b/i,\n  /\\byou\\s+must\\s+already\\s+hold\\b/i,\n  /\\bcandidates\\s+must\\s+(?:hold|have|be)\\b/i,\n  /\\bapplicants\\s+must\\s+(?:hold|have|be)\\b/i,\n  // Citizenship / residency hard walls\n  /\\bEU\\s+citizenship\\s+(?:is\\s+)?required\\b/i,\n  /\\bmust\\s+be\\s+(?:an?\\s+)?EU\\s+citizen\\b/i,\n  /\\bdutch\\s+(?:citizen|national|citizenship|nationality)\\b/i,\n  /\\bpermanent\\s+resident\\s+only\\b/i,\n  /\\bmust\\s+hold\\s+indefinite\\s+leave\\b/i,\n  // Additional rejection patterns\n  /\\bonly\\s+(?:consider|accepting)\\s+(?:local|on-?site)\\s+candidates\\b/i,\n  /\\bwork\\s+(?:authorization|permit)\\s+(?:is\\s+)?required\\b/i,\n  /\\bmust\\s+be\\s+(?:legally\\s+)?authorized\\s+to\\s+work\\b/i,\n  /\\bauthorized\\s+to\\s+work\\s+in\\s+(?:the\\s+)?(?:US|UK|EU|Netherlands|Germany)\\s+(?:is\\s+)?required\\b/i,\n  /\\bno\\s+work\\s+permit\\s+(?:support|sponsorship)\\b/i\n];\n\nconst output = [];\n\nfor (const item of $input.all()) {\n  const job = item.json;\n  const text = ((job.title || '') + ' ' + (job.description || ''));\n\n  // 1. Hard reject — drop immediately\n  const rejected = HARD_REJECT.find(rx => rx.test(text));\n  if (rejected) {\n    console.log(`HARD REJECT: ${job.title} @ ${job.company} — matched: ${rejected}`);\n    continue;\n  }\n\n  // 2. Everything else → LLM\n  output.push({\n    json: {\n      ...job,\n      _regex_verdict: 'uncertain',\n      _regex_reason: 'no_signal',\n      _regex_confidence: 'low'\n    }\n  });\n}\n\nconsole.log(`Regex results — rejected dropped, ${output.length} passed to LLM`);\nreturn output;"
+        "filePath": "scripts/pre-filter.js"
       },
       "id": "fd128e68-8088-4da9-92ba-5a104fbb4545",
       "name": "Regex Hard Filter",
@@ -131,7 +131,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const results = [];\n\nfor (const item of $input.all()) {\n  const job = item.json;\n\n  const coverLetterTemplate = `Dear Hiring Team,\nI am writing to express my interest in the [JOB_TITLE] position at [COMPANY_NAME]. With over 7 years of full-stack engineering experience — most recently as a Senior Software Engineer (SDE3 / Associate Vice President) at JPMorgan Chase Asset & Wealth Management — I bring deep expertise in React, TypeScript, Python, AWS, and AI-native system design, and I am actively pursuing relocation to Europe.\n\nAt JPMorgan, I architected MCP server infrastructure and built Connect Studio — an AI-native multi-persona platform that bridges LLM capabilities with real-world engineering workflows at scale. Prior to this, at Aurigo Software Technologies, I led frontend architecture across multiple product lines, delivered products and platforms serving 1,000+ concurrent users, and pioneered an EAA/ADA/WCAG accessibility initiative recognised in a company press release. I hold a B.E. from BITS Pilani and have mentored 10+ engineers across cross-functional teams.\n\n[COMPANY_SPECIFIC_PARAGRAPH]\n\nI am available for interviews at your convenience and am prepared to relocate upon offer. My compensation expectation aligns with the relevant Highly Skilled Migrant salary threshold for my age bracket, and I am open to discussing further.\n\nWarm regards,\nShirsak Sahoo\nshirsaksahoo96@gmail.com | +91-7997187900 | linkedin.com/in/shirsaksahoo`;\n\n  const payload = {\n    model: 'unsloth/Qwen3.5-9B-GGUF:Q6_K',\n    temperature: 0.2,\n    max_tokens: 10000,\n    top_p: 0.9,\n    repeat_penalty: 1.05,\n    stop: ['\\n', '</s>'],\n    messages: [\n      {\n        role: 'system',\n        content: `You are an expert technical recruiter and cover letter writer for senior software engineering roles.\n\nYour task has TWO parts. Analyze the job posting, then write a tailored cover letter if approved.\n\nReturn ONLY valid JSON — no prose, no markdown, no explanation outside the JSON.\n\n## PART 1 — Relocation/Sponsorship Analysis\n\n### HARD REJECT — set approve=false immediately if the description contains ANY of:\n- Negated sponsorship: \"do not sponsor\", \"cannot sponsor\", \"unable to sponsor\", \"no sponsorship\", \"sponsorship not available\", \"we do not offer visa\", \"we don't offer visa\"\n- Negated relocation: \"do not support relocation\", \"cannot support relocation\", \"no relocation\", \"relocation not provided\", \"we do not provide relocation\", \"we don't support relocation\"\n- Right-to-work restrictions: \"must have right to work\", \"must be eligible to work\", \"must already have\", \"no right to work sponsorship\", \"candidates must hold\", \"applicants must be\", \"you must already hold\"\n- Citizenship/residency requirements: \"EU citizenship required\", \"must be EU citizen\", \"dutch citizen\", \"dutch nationality\", \"permanent resident only\", \"must hold indefinite leave\"\n\nIMPORTANT: The presence of the word 'relocation' or 'sponsorship' alone does NOT make a job approvable — read the FULL phrase for polarity. \"We support relocation\" = positive. \"We do NOT support relocation\" = hard reject.\n\n### APPROVE — set approve=true only if the description clearly states:\n- Explicit visa sponsorship offered: \"visa sponsorship\", \"we sponsor visas\", \"sponsorship available\", \"visa support provided\"\n- Explicit relocation support: \"relocation package\", \"relocation assistance\", \"we support relocation\", \"relocation provided\"\n- Kennismigrant / Highly Skilled Migrant / HSM / Blue Card sponsorship mentioned\n- International candidates explicitly welcomed: \"open to international applicants\", \"global candidates welcome\"\n\n### UNCERTAIN — set approve=false\nIf nothing about sponsorship or work authorization is mentioned, approve=false. No benefit of the doubt.\n\n## PART 2 — Cover Letter (only if approve=true)\n\nIf approve=true: write a professional, human-sounding cover letter using the base template provided. Replace all placeholders. Write a concise company-specific paragraph. Keep it under 500 words. No markdown. No bullet points. No AI mentions.\n\nIf approve=false: set cover_letter to empty string \"\".\n\n## Output JSON format — return exactly this structure:\n{\n  \"approve\": true,\n  \"confidence\": \"high\",\n  \"reason\": \"mentions visa sponsorship\",\n  \"cover_letter\": \"Dear Hiring Team, ...\"\n}`\n      },\n      {\n        role: 'user',\n        content: `Job Title: ${job.title}\nCompany: ${job.company}\nLocation: ${job.location}\n\nBase cover letter template:\n${coverLetterTemplate}\n\nCandidate details:\nName: Shirsak Sahoo\nExperience: 7+ years\nEmail: shirsaksahoo96@gmail.com\nPhone: +91-7997187900\nLinkedIn: linkedin.com/in/shirsaksahoo\n\nJob Description:\n${(job.description || '')}`\n      }\n    ],\n    extra_body: {\n      chat_template_kwargs: {\n        enable_thinking: false\n      }\n    }\n  };\n\n  results.push({\n    json: {\n      ...job,\n      _llmPayload: payload\n    }\n  });\n}\n\nreturn results;"
+        "filePath": "scripts/build-cover-letter-request.js"
       },
       "id": "8d506d6d-bbb9-431f-8421-8a338fe23b13",
       "name": "Build LLM Request",
@@ -187,7 +187,7 @@
           "conditions": [
             {
               "id": "approved-condition",
-              "leftValue": "={{ (() => {\nconst raw = $json.choices?.[0]?.message?.content || '{}';\ntry {\n  const parsed = JSON.parse(raw);\n  return parsed.approve === true;\n} catch(e) {\n  return false;\n}\n})() }}",
+              "leftValue": "={{ (() => {\nconst raw = $json.choices?.[0]?.message?.content || '{}';\ntry {\n  const parsed = JSON.parse(raw);\n  return parsed.approve === true && parsed.role_match === 'yes';\n} catch(e) {\n  return false;\n}\n})() }}",
               "rightValue": true,
               "operator": {
                 "type": "boolean",
@@ -211,7 +211,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const llmItem = $input.first();\nconst buildItem = $('Build LLM Request').first();\n\nif (!llmItem?.json || !buildItem?.json) {\n  return [];\n}\n\nconst raw = (llmItem.json?.choices?.[0]?.message?.content || '').trim();\n\nlet parsed = { approve: false, confidence: 'low', reason: 'parse_failed', cover_letter: '' };\ntry {\n  parsed = JSON.parse(raw);\n} catch (e) {\n  return [];\n}\n\nconst coverLetter = (parsed.cover_letter || '').trim();\nif (!coverLetter) {\n  return [];\n}\n\nconst job = buildItem.json;\n\nreturn [{\n  json: {\n    date: new Date().toISOString().split('T')[0],\n    company: (job.company || '').trim(),\n    title: (job.title || '').trim(),\n    location: (job.location || '').trim(),\n    url: (job.url || ''),\n    relocation_reason: (parsed.reason || '').trim(),\n    relocation_confidence: (parsed.confidence || '').trim(),\n    cover_letter: coverLetter,\n    status: 'Not Applied'\n  }\n}];"
+        "filePath": "scripts/assemble-row.js"
       },
       "id": "0a4e32a5-d656-409b-bf97-5b4a14d02811",
       "name": "Assemble Row",
@@ -305,6 +305,26 @@
             {
               "id": "relocation_confidence",
               "displayName": "relocation_confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "role_match",
+              "displayName": "role_match",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "role_reason",
+              "displayName": "role_reason",
               "required": false,
               "defaultMatch": false,
               "display": true,
