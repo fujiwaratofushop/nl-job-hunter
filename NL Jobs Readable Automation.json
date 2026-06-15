@@ -38,7 +38,7 @@
         "specifyBody": "json",
         "jsonBody": "{\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=software%20engineer%20visa%20sponsorship&location=netherlands&f_TPR=r86400\"\n  ],\n  \"maxResults\": 100\n}",
         "options": {
-          "timeout": 300000
+          "timeout": 600000
         }
       },
       "id": "1efa5b85-f6d4-49f8-8cb6-f32a48711be6",
@@ -65,9 +65,9 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\n  \"country\": \"nl\",\n  \"enableUniqueJobs\": false,\n  \"includeSimilarJobs\": false,\n  \"maxRows\": 100,\n  \"query\": \"software engineer relocation\"\n}",
+        "jsonBody": "{\n  \"country\": \"nl\",\n  \"enableUniqueJobs\": true,\n  \"includeSimilarJobs\": false,\n  \"maxRows\": 100,\n  \"query\": \"software engineer relocation\"\n}",
         "options": {
-          "timeout": 300000
+          "timeout": 600000
         }
       },
       "id": "47a9774c-9ad6-44bf-ac23-c065bbdebf80",
@@ -163,7 +163,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json._llmPayload) }}",
         "options": {
-          "timeout": 300000
+          "timeout": 600000
         }
       },
       "id": "f3e4a346-8fcc-4861-9e09-612324784381",

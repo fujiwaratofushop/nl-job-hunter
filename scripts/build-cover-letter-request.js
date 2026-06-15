@@ -20,7 +20,7 @@ shirsaksahoo96@gmail.com | +91-7997187900 | linkedin.com/in/shirsaksahoo`;
   const payload = {
     model: 'unsloth/Qwen3.5-9B-GGUF:Q6_K',
     temperature: 0.2,
-    max_tokens: 10000,
+    max_tokens: 20000,
     top_p: 0.9,
     repeat_penalty: 1.05,
     stop: ['\n', '</s>'],

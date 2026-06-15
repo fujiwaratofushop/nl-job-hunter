@@ -38,7 +38,7 @@
         "specifyBody": "json",
         "jsonBody": "{\n  \"urls\": [\n    \"https://www.linkedin.com/jobs/search/?keywords=software%20engineer&location=Netherlands&f_TPR=r86400\"    ],\n  \"maxResults\": 100\n}",
         "options": {
-          "timeout": 300000
+          "timeout": 600000
         }
       },
       "id": "d0d16cfd-ffe0-4565-ac1f-aa0b53670afc",
@@ -167,7 +167,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json._relocationPayload) }}",
         "options": {
-          "timeout": 300000
+          "timeout": 600000
         }
       },
       "id": "6236912b-c2e9-4395-820d-2a5083f01ccb",
@@ -247,7 +247,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json._llmPayload) }}",
         "options": {
-          "timeout": 300000
+          "timeout": 600000
         }
       },
       "id": "7afa49b7-a68e-45d8-aeff-d33953237e36",
