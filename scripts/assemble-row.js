@@ -5,7 +5,9 @@ if (!llmItem?.json || !buildItem?.json) {
   return [];
 }
 
-const raw = (llmItem.json?.choices?.[0]?.message?.content || '').trim();
+const raw = ($json.choices?.[0]?.message?.content || '{}')
+  .replace(/```json\n?|```/g, '')
+  .trim();
 
 let parsed = { approve: false, confidence: 'low', reason: 'parse_failed', role_match: 'no', role_reason: '', cover_letter: '' };
 try {
