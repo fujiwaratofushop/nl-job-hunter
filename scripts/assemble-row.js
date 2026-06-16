@@ -1,13 +1,13 @@
 const llmItem = $input.first();
 const buildItem = $('Build LLM Request').first();
-
 if (!llmItem?.json || !buildItem?.json) {
   return [];
 }
 
-const raw = ($json.choices?.[0]?.message?.content || '{}')
-  .replace(/```json\n?|```/g, '')
-  .trim();
+let raw = (llmItem.json?.choices?.[0]?.message?.content || '').trim();
+
+// Strip markdown code fences (```json ... ``` or ``` ... ```)
+raw = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
 
 let parsed = { approve: false, confidence: 'low', reason: 'parse_failed', role_match: 'no', role_reason: '', cover_letter: '' };
 try {
@@ -22,7 +22,6 @@ if (!coverLetter) {
 }
 
 const job = buildItem.json;
-
 return [{
   json: {
     date: new Date().toISOString().split('T')[0],
